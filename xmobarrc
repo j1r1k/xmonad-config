@@ -1,0 +1,4 @@
+Config { border = NoBorder
+       , position = Top
+       , lowerOnStart = True
+       }

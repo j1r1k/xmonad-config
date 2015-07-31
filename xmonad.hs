@@ -110,8 +110,8 @@ updateXmobarAudio = "xmobar-audio-status \"" ++ myXmobarColorBad ++ "\" > " ++ x
 xF86XK_AudioMicMute ::KeySym
 xF86XK_AudioMicMute = 0x1008ffb2
 
-contains :: (Functor f, Eq a) => f [a] -> [a] -> f Bool
-contains q x = fmap (List.isInfixOf x) q
+--contains :: (Functor f, Eq a) => f [a] -> [a] -> f Bool
+--contains q x = fmap (List.isInfixOf x) q
 
 --nextMatchForward :: Query Bool -> X ()
 --nextMatchForward = nextMatch Forward
@@ -137,8 +137,14 @@ followTo dir t = doTo dir t getSortByIndex (\w -> windows (StackSet.shift w) >> 
 spawnN :: [String] -> X ()
 spawnN = spawn . List.intercalate "; "
 
-openInTerminal :: String -> String
-openInTerminal c = "it " ++ c
+--openInTerminal :: String -> String
+--openInTerminal c = "it " ++ c
+
+masterWindow :: XState -> Window
+masterWindow = head . take 1 . StackSet.index . windowset
+
+mergeWithMaster :: X ()
+mergeWithMaster = withFocused (\f -> sendMessage . Merge f =<< gets masterWindow)
 
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
@@ -175,15 +181,11 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
 
   , ((modm .|. shiftMask, xK_e     ), spawn "gvim")
 
-  , ((modm ,              xK_r     ), nextMatchOrDoForward (title `contains` "VIM") (openInTerminal "vim"))
-
-  , ((modm .|. shiftMask, xK_r     ), spawn (openInTerminal "vim" ))
+  , ((modm ,              xK_r     ), nextMatchOrDoForwardClass "jetbrains-idea-ce" "idea")
+  
+  , ((modm .|. shiftMask, xK_r     ), spawn "idea")
 
   , ((modm ,              xK_v     ), nextMatchOrDoForwardClass "Vlc" "nlvlc")
-
-  , ((modm ,              xK_i     ), nextMatchOrDoForwardClass "jetbrains-idea-ce" "idea")
-  
-  , ((modm .|. shiftMask, xK_i     ), spawn "idea")
 
   , ((0 ,  xF86XK_AudioRaiseVolume ), spawnN ["pa-volume-up", updateXmobarAudio])
 
@@ -282,6 +284,9 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
 
   -- Pull window from sublayout
   , ((modm              , xK_u     ), withFocused (sendMessage . UnMerge))
+
+  -- Merge window with master
+  , ((modm              , xK_i     ), mergeWithMaster )
 
   ]
   ++
@@ -556,6 +561,8 @@ xmobarTemplate "eos" =
                  , xmobarDate 10
                  ]
   ++ " -t \'%StdinReader%}{| %load% | %memory% | %network% | %bluetooth% | %audio% | %date% \'"
+
+xmobarTemplate _ = ""
 
 xmobarParameters :: String -> String
 xmobarParameters h = xmobarLook ++ xmobarTemplate h

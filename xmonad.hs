@@ -287,8 +287,8 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
   ++
   -- workspace switching
   [((m .|. modm , k), windows $ f i)
-      | (i, k) <- zip (XMonad.workspaces conf) ([xK_1 .. xK_9] ++ [xK_0, xK_minus, xK_equal])
-      , (f, m) <- [(StackSet.greedyView, 0), (StackSet.shift, shiftMask)]]
+    | (i, k) <- zip (XMonad.workspaces conf) ([xK_1 .. xK_9] ++ [xK_0, xK_minus, xK_equal])
+    , (f, m) <- [(StackSet.greedyView, 0), (StackSet.shift, shiftMask)]]
 
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
@@ -297,21 +297,21 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
 myMouseBindings :: XConfig t -> Map.Map (KeyMask, Button) (Window -> X ())
 myMouseBindings (XConfig {XMonad.modMask = modm}) = Map.fromList
 
-    -- mod-button1, Set the window to floating mode and move by dragging
-    [ ((modm , button1), \w -> focus w >> mouseMoveWindow w
-                                      >> windows StackSet.shiftMaster)
+  -- mod-button1, Set the window to floating mode and move by dragging
+  [ ((modm , button1), \w -> focus w >> mouseMoveWindow w
+                                     >> windows StackSet.shiftMaster)
 
-    -- mod-button2, Raise the window to the top of the stack
-    , ((modm , button2), \w -> focus w >> windows StackSet.shiftMaster)
+  -- mod-button2, Raise the window to the top of the stack
+  , ((modm , button2), \w -> focus w >> windows StackSet.shiftMaster)
 
-    -- mod-button3, Set the window to floating mode and resize by dragging
-    , ((modm , button3), \w -> focus w >> mouseResizeWindow w
-                                      >> windows StackSet.shiftMaster)
+  -- mod-button3, Set the window to floating mode and resize by dragging
+  , ((modm , button3), \w -> focus w >> mouseResizeWindow w
+                                     >> windows StackSet.shiftMaster)
 
-    --, ((mod4Mask, button4), \_ -> windows StackSet.focusUp )
+  --, ((mod4Mask, button4), \_ -> windows StackSet.focusUp )
 
-    --, ((mod4Mask, button5), \_ -> windows StackSet.focusDown)
-    ]
+  --, ((mod4Mask, button5), \_ -> windows StackSet.focusDown)
+  ]
 
 ------------------------------------------------------------------------
 -- Layouts:
@@ -320,21 +320,20 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = Map.fromList
 myLayout = avoidStruts $ subTabbed 
   (onWorkspace "0" (def ||| noBorders Simplest) def)
   where
-     def = smartBorders tiled
+    def  = smartBorders tiled
            ||| smartBorders (Mirror tiled)
            ||| noBorders Full
            ||| smartBorders Grid
-     -- default tiling algorithm partitions the screen into two panes
-     tiled   = Tall nmaster delta ratio
+    tiled = Tall nmaster delta ratio
 
-     -- The default number of windows in the master pane
-     nmaster = 1
+    -- The default number of windows in the master pane
+    nmaster = 1
 
-     -- Default proportion of screen occupied by master pane
-     ratio   = 1/2
+    -- Default proportion of screen occupied by master pane
+    ratio   = 1/2
 
-     -- Percent of screen to increment by when resizing panes
-     delta   = 3/100
+    -- Percent of screen to increment by when resizing panes
+    delta   = 3/100
 
 ------------------------------------------------------------------------
 -- Window rules:
@@ -361,11 +360,10 @@ doQueryMerge qry = do
 
 myManageHook :: ManageHook
 myManageHook = manageDocks <+> composeAll
-
-      [ --isDialog <&&> className /=? "Keepassx" --> doCenterFloat <+> doF StackSet.focusDown,
-        isDialog                     --> doCenterFloat,
-        className =? myBrowserClass  --> doQueryMerge (className =? myBrowserClass)
-      ]
+--isDialog <&&> className /=? "Keepassx" --> doCenterFloat <+> doF StackSet.focusDown,
+  [ isDialog                     --> doCenterFloat
+  , className =? myBrowserClass  --> doQueryMerge (className =? myBrowserClass)
+  ]
 
 ------------------------------------------------------------------------
 -- Event handling
@@ -377,23 +375,22 @@ myEventHook = mempty <+> docksEventHook
 -- Status bars and logging
 ------------------------------------------------------------------------
 
-myLogHook xmobar = dynamicLogWithPP (defaultPP
-                     { ppOutput = hPutStrLn xmobar
-                     , ppTitle = xmobarColor myXmobarFgColor "" . shorten 110
-                     , ppCurrent = xmobarColor myXmobarCursorColor myXmobarHiColor . pad
-                     , ppHidden = pad
-                     , ppSep = xmobarColor myXmobarFgColor "" " | "
-                     , ppWsSep = ""
-                     , ppLayout = \x -> case x of
-                                          "Tall" -> "T"
-                                          "Mirror Tall" -> "M"
-                                          "Full" -> "F"
-                                          "Grid" -> "G"
-                                          "Simplest" -> "S"
-                                          _ -> x
-                     })
-                     >> historyHook
-                     >> updatePointer (Relative 0.5 0.5)
+myLogHook xmobar = 
+  dynamicLogWithPP (defaultPP
+    { ppOutput = hPutStrLn xmobar
+    , ppTitle = xmobarColor myXmobarFgColor "" . shorten 110
+    , ppCurrent = xmobarColor myXmobarCursorColor myXmobarHiColor . pad
+    , ppHidden = pad
+    , ppSep = xmobarColor myXmobarFgColor "" " | "
+    , ppWsSep = ""
+    , ppLayout = \x -> case x of "Tabbed Tall" -> "TT"
+                                 "Tabbed Mirror Tall" -> "TM"
+                                 "Tabbed Full" -> "TF"
+                                 "Tabbed Grid" -> "TG"
+                                 _ -> x
+    })
+    >> historyHook
+    >> updatePointer (Relative 0.5 0.5)
 
 ------------------------------------------------------------------------
 -- Startup hook
@@ -412,18 +409,18 @@ myStartupHook =
 
 myXPConfig :: XPConfig
 myXPConfig =
-    defaultXPConfig { font                  = myXFTFont
-                    , bgColor               = myXmobarBgColor
-                    , fgColor               = myXmobarFgColor
-                    , bgHLight              = myXmobarCursorColor
-                    , fgHLight              = myXmobarBgColor
-                    , borderColor           = myFocusedBorderColor
-                    , promptBorderWidth     = 1
-                    , height                = 16
-                    , position              = Bottom
-                    , historySize           = 100
-                    , historyFilter         = deleteConsecutive
-                    }
+  defaultXPConfig { font                  = myXFTFont
+                  , bgColor               = myXmobarBgColor
+                  , fgColor               = myXmobarFgColor
+                  , bgHLight              = myXmobarCursorColor
+                  , fgHLight              = myXmobarBgColor
+                  , borderColor           = myFocusedBorderColor
+                  , promptBorderWidth     = 1
+                  , height                = 16
+                  , position              = Bottom
+                  , historySize           = 100
+                  , historyFilter         = deleteConsecutive
+                  }
 
 --mySearchEngine :: XMonad.Actions.Search.SearchEngine
 --mySearchEngine = searchEngine "" ""

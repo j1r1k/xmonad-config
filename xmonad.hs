@@ -1,6 +1,7 @@
 
 import Control.Monad (filterM)
 
+import Data.Char (toLower)
 import qualified Data.List as List (intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, lookup, toList, Map)
 
@@ -12,12 +13,12 @@ import System.Exit ()
 import System.IO (hPutStrLn)
 
 import Text.Printf (printf)
+import Text.Regex.Posix
 
 import XMonad 
 import XMonad.Actions.CycleWS (doTo, moveTo, nextScreen, shiftNextScreen, WSType(EmptyWS))
 import XMonad.Actions.GroupNavigation (historyHook, nextMatch, nextMatchOrDo, Direction(Backward, Forward, History))
 import XMonad.Actions.UpdatePointer (updatePointer, PointerPosition(Relative))
-import XMonad.Actions.WindowBringer (windowMap)
 import XMonad.Actions.WindowGo ()
 import XMonad.Hooks.DynamicLog (defaultPP, dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup)
@@ -31,7 +32,8 @@ import XMonad.Layout.Simplest (Simplest(Simplest))
 import XMonad.Layout.SubLayouts (subTabbed, GroupMsg(Merge, UnMerge))
 import XMonad.Prompt (defaultXPConfig, deleteConsecutive, getNextCompletion, mkXPrompt, Direction1D(Next), XPConfig(..), XPPosition(..), XPrompt(..))
 import XMonad.Prompt.Shell (shellPrompt)
-import qualified XMonad.StackSet as StackSet (focusDown, focusMaster, focusUp, focusWindow, greedyView, insertUp, index, shift, shiftMaster, sink, swapDown, swapMaster, swapUp)
+import qualified XMonad.StackSet as StackSet (focusDown, focusMaster, focusUp, focusWindow, greedyView, insertUp, index, integrate', shift, shiftMaster, sink, stack, swapDown, swapMaster, swapUp, tag, workspaces)
+import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
@@ -44,9 +46,9 @@ myTerminal      = "urxvt"
 myTerminalClass :: String
 myTerminalClass = "URxvt"
 myBrowser :: String
-myBrowser       = "vimb"
+myBrowser       = "firefox"
 myBrowserClass :: String
-myBrowserClass  = "Vimb"
+myBrowserClass  = "Firefox"
 
 myFocusFollowsMouse :: Bool
 myFocusFollowsMouse = True
@@ -161,7 +163,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
 
   , ((modm .|. shiftMask, xK_f     ), spawn myBrowser)
 
-  , ((modm ,              xK_d     ), windowMatchPrompt (className =? myBrowserClass) myXPConfig { searchPredicate = List.isInfixOf } )
+  --, ((modm ,              xK_d     ), windowMatchPrompt (className =? myBrowserClass) myXPConfig { alwaysHighlight = True, searchPredicate = hasAllWords } )
 
   , ((modm ,              xK_g     ), nextMatchOrDoForwardClass "Claws-mail" "claws-mail")
 
@@ -214,6 +216,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
   , ((shiftMask, xF86XK_MonBrightnessUp   ), spawn ("xbacklight -set " ++ myBrightnessDefaultHigh ))
 
   -- close focused window
+  , ((modm ,              xK_q     ), kill)
   , ((modm .|. shiftMask, xK_q     ), kill)
 
    -- Rotate through the available layout algorithms
@@ -286,7 +289,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
   , ((modm              , xK_u     ), withFocused (sendMessage . UnMerge))
 
   -- Merge window with master
-  , ((modm              , xK_i     ), mergeWithMaster )
+  --, ((modm              , xK_i     ), mergeWithMaster )
 
   ]
   ++
@@ -322,8 +325,7 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = Map.fromList
 -- Layouts:
 ------------------------------------------------------------------------
 
-myLayout = avoidStruts $ subTabbed 
-  (onWorkspace "0" (def ||| noBorders Simplest) def)
+myLayout = avoidStruts def
   where
     def  = smartBorders tiled
            ||| smartBorders (Mirror tiled)
@@ -354,20 +356,20 @@ myLayout = avoidStruts $ subTabbed
 -- Hook to merge new window with master if it matches the query
 -- https://wiki.haskell.org/Xmonad/Config_archive/adamvo's_xmonad.hs
 --
-doQueryMerge :: Monoid b => Query Bool -> Query b
-doQueryMerge qry = do
-  w <- ask
-  aw <- liftX $ filterM (runQuery qry) =<< gets (take 1 . StackSet.index . windowset)
-  liftX $ windows $ StackSet.insertUp w
-  liftX $ (sendMessage . XMonad.Layout.SubLayouts.Merge w) $ head aw
-  liftX $ windows StackSet.shiftMaster
-  idHook
+--doQueryMerge :: Monoid b => Query Bool -> Query b
+--doQueryMerge qry = do
+--  w <- ask
+--  aw <- liftX $ filterM (runQuery qry) =<< gets (take 1 . StackSet.index . windowset)
+--  liftX $ windows $ StackSet.insertUp w
+--  liftX $ (sendMessage . XMonad.Layout.SubLayouts.Merge w) $ head aw
+--  liftX $ windows StackSet.shiftMaster
+--  idHook
 
 myManageHook :: ManageHook
 myManageHook = manageDocks <+> composeAll
 --isDialog <&&> className /=? "Keepassx" --> doCenterFloat <+> doF StackSet.focusDown,
   [ isDialog                     --> doCenterFloat
-  , className =? myBrowserClass  --> doQueryMerge (className =? myBrowserClass)
+  --, className =? myBrowserClass  --> doQueryMerge (className =? myBrowserClass)
   ]
 
 ------------------------------------------------------------------------
@@ -388,10 +390,10 @@ myLogHook xmobar =
     , ppHidden = pad
     , ppSep = xmobarColor myXmobarFgColor "" " | "
     , ppWsSep = ""
-    , ppLayout = \x -> case x of "Tabbed Tall" -> "TT"
-                                 "Tabbed Mirror Tall" -> "TM"
-                                 "Tabbed Full" -> "TF"
-                                 "Tabbed Grid" -> "TG"
+    , ppLayout = \x -> case x of "Tall"        -> "T"
+                                 "Mirror Tall" -> "M"
+                                 "Full"        -> "F"
+                                 "Grid"        -> "G"
                                  _ -> x
     })
     >> historyHook
@@ -435,29 +437,53 @@ myXPConfig =
 -- Window Prompt which displays only windows that match query
 ------------------------------------------------------------------------
 
-windowMapMatch :: Query Bool -> X (Map.Map String Window)
-windowMapMatch qry = do
-  w <- windowMap
-  x <- filterM (runQuery qry . snd) $ Map.toList w
-  return $ Map.fromList x
-
-data WindowMatchPrompt = WindowMatchPrompt
-
-instance XPrompt WindowMatchPrompt where
-  showXPrompt _ = "> "
-  commandToComplete _ c = c
-  nextCompletion _ = getNextCompletion
-
-windowMatchPrompt :: Query Bool -> XPConfig -> X ()
-windowMatchPrompt qry c = do
-    a <- fmap action wm
-    w <- wm
-    mkXPrompt WindowMatchPrompt c (compList w) a
-  where
-    winAction a m = flip whenJust (windows . a) . flip Map.lookup m
-    action        = winAction StackSet.focusWindow
-    wm            = windowMapMatch qry
-    compList m s  = return . filter (searchPredicate c s) . map fst . Map.toList $ m
+--hasAllWords :: String -> String -> Bool
+--hasAllWords ws xs = all (\w -> w `List.isInfixOf` lxs) $ words lws
+--  where lws = map toLower ws
+--        lxs = map toLower xs
+--
+--
+---- | Returns the window name as will be listed in dmenu.
+----   Lowercased, for your convenience (since dmenu is case-sensitive).
+----   Tagged with the workspace ID, to guarantee uniqueness, and to let the user
+----   know where he's going.
+--decorateName :: WindowSpace -> Window -> X String
+--decorateName ws w = do
+--  name <- getName w
+--  return $ "[" ++ StackSet.tag ws ++ "] " ++ show name
+--
+----
+---- | A map from window names to Windows.
+--windowMap :: X (Map.Map String Window)
+--windowMap = do
+--    ws <- gets windowset
+--    Map.fromList <$> concat <$> mapM keyValuePairs (StackSet.workspaces ws)
+--  where keyValuePairs ws = mapM (keyValuePair ws) $ StackSet.integrate' (StackSet.stack ws)
+--        keyValuePair ws w = flip (,) w <$> decorateName ws w
+--
+--windowMapMatch :: Query Bool -> X (Map.Map String Window)
+--windowMapMatch qry = do
+--  w <- windowMap
+--  x <- filterM (runQuery qry . snd) $ Map.toList w
+--  return $ Map.fromList x
+--
+--data WindowMatchPrompt = WindowMatchPrompt
+--
+--instance XPrompt WindowMatchPrompt where
+--  showXPrompt _ = "> "
+--  commandToComplete _ c = c
+--  nextCompletion _ = getNextCompletion
+--
+--windowMatchPrompt :: Query Bool -> XPConfig -> X ()
+--windowMatchPrompt qry c = do
+--    a <- fmap action wm
+--    w <- wm
+--    mkXPrompt WindowMatchPrompt c (compList w) a
+--  where
+--    winAction a m = flip whenJust (windows . a) . flip Map.lookup m
+--    action        = winAction StackSet.focusWindow
+--    wm            = windowMapMatch qry
+--    compList m s  = return . filter (searchPredicate c s) . map fst . Map.toList $ m
 
 ------------------------------------------------------------------------
 -- Xmobar configuration
@@ -548,7 +574,7 @@ xmobarTemplate "eurus" =
                  , xmobarBattery 600
                  , xmobarDate 10
                  ]
-  ++ " -t \'%StdinReader%}{| %load% | %memory% | %wicd% | %bluetooth% | %audio% | %battery% | %date% \'"
+  ++ " -t \'%StdinReader%}{ | %load% | %memory% | %wicd% | %bluetooth% | %audio% | %battery% | %date% \'"
 
 
 xmobarTemplate "eos" =
@@ -560,7 +586,7 @@ xmobarTemplate "eos" =
                  , xmobarPipe xmobarPipeAudio "audio"
                  , xmobarDate 10
                  ]
-  ++ " -t \'%StdinReader%}{| %load% | %memory% | %network% | %bluetooth% | %audio% | %date% \'"
+  ++ " -t \'%StdinReader%}{ | %load% | %memory% | %network% | %bluetooth% | %audio% | %date% \'"
 
 xmobarTemplate _ = ""
 

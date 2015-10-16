@@ -288,6 +288,9 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
   -- Pull window from sublayout
   , ((modm              , xK_u     ), withFocused (sendMessage . UnMerge))
 
+
+  , ((shiftMask         , xK_Escape), spawn "xdotool key Caps_Lock")
+
   -- Merge window with master
   --, ((modm              , xK_i     ), mergeWithMaster )
 

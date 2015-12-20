@@ -100,10 +100,10 @@ myBrightnessDefaultHigh :: String
 myBrightnessDefaultHigh = "50"
 
 xmobarPipeAudio :: String
-xmobarPipeAudio = "/home/jirik/.xmonad/xmobar-audio-pipe"
+xmobarPipeAudio = "/home/jirik/.xmonad/xmobar-pipe-audio"
 
-updateXmobarAudio :: String
-updateXmobarAudio = "xmobar-audio-status \"" ++ myXmobarColorBad ++ "\" > " ++ xmobarPipeAudio
+xmobarPipeBluetooth :: String
+xmobarPipeBluetooth = "/home/jirik/.xmonad/xmobar-pipe-bluetooth"
 
 -----------------------------------------------------------------------
 -- Key bindings helpers
@@ -136,8 +136,8 @@ nextMatchOrDoForwardClass c = nextMatchOrDoForward (className =? c)
 followTo :: Direction1D -> WSType -> X ()
 followTo dir t = doTo dir t getSortByIndex (\w -> windows (StackSet.shift w) >> windows (StackSet.greedyView w))
 
-spawnN :: [String] -> X ()
-spawnN = spawn . List.intercalate "; "
+--spawnN :: [String] -> X ()
+--spawnN = spawn . List.intercalate "; "
 
 --openInTerminal :: String -> String
 --openInTerminal c = "it " ++ c
@@ -189,11 +189,11 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
 
   , ((modm ,              xK_v     ), nextMatchOrDoForwardClass "Vlc" "nlvlc")
 
-  , ((0 ,  xF86XK_AudioRaiseVolume ), spawnN ["pa-volume-up", updateXmobarAudio])
+  , ((0 ,  xF86XK_AudioRaiseVolume ), spawn "pa-volume-up")
 
-  , ((0 ,  xF86XK_AudioLowerVolume ), spawnN ["pa-volume-down", updateXmobarAudio])
+  , ((0 ,  xF86XK_AudioLowerVolume ), spawn "pa-volume-down")
 
-  , ((0 ,  xF86XK_AudioMute        ), spawnN ["pa-volume-mute", updateXmobarAudio])
+  , ((0 ,  xF86XK_AudioMute        ), spawn "pa-volume-mute")
 
   , ((modm , xF86XK_AudioRaiseVolume ), spawn "pa-mic-up")
 
@@ -411,7 +411,8 @@ myStartupHook =
   ewmhDesktopsStartup
   >> setWMName "LG3D"
   -- trigger audio display update on startup
-  >> spawn updateXmobarAudio
+  >> spawn "xmobar-update-audio-status"
+  >> spawn "xmobar-update-bluetooth-status"
 
 ------------------------------------------------------------------------
 -- Config
@@ -572,7 +573,7 @@ xmobarTemplate "eurus" =
                  , xmobarLoad 4 "load" 100
                  , xmobarMemory 100
                  , xmobarNetwork "enp0s25" "wlp3s0" "network" 600
-                 , xmobarBluetooth "bluetooth" 600
+                 , xmobarPipe xmobarPipeBluetooth "bluetooth"
                  , xmobarPipe xmobarPipeAudio "audio"
                  , xmobarBattery 600
                  , xmobarDate 10
@@ -585,7 +586,7 @@ xmobarTemplate "eos" =
                  , xmobarLoad 4 "load" 100
                  , xmobarMemory 100
                  , xmobarNetwork "enp4s0" "" "network" 600
-                 , xmobarBluetooth "bluetooth" 600
+                 , xmobarPipe xmobarPipeBluetooth "bluetooth"
                  , xmobarPipe xmobarPipeAudio "audio"
                  , xmobarDate 10
                  ]

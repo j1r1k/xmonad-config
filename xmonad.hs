@@ -410,8 +410,8 @@ myStartupHook =
   ewmhDesktopsStartup
   >> setWMName "LG3D"
   -- trigger audio display update on startup
-  >> spawn "xmobar-update-audio-status"
-  >> spawn "xmobar-update-bluetooth-status"
+  >> spawn "do-every 10 xmobar-update-audio-status"
+  >> spawn "do-every 10 xmobar-update-bluetooth-status"
 
 ------------------------------------------------------------------------
 -- Config

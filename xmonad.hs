@@ -1,7 +1,7 @@
 import Control.Monad (filterM)
 
 import Data.Char (toLower)
-import qualified Data.List as List (intercalate, isInfixOf)
+import qualified Data.List as List (concat, intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, lookup, toList, Map)
 
 import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp)
@@ -390,7 +390,7 @@ myLogHook xmobar =
     , ppTitle = xmobarColor myXmobarFgColor "" . shorten 110
     , ppCurrent = xmobarColor myXmobarCursorColor myXmobarHiColor . pad
     , ppHidden = pad
-    , ppSep = xmobarColor myXmobarFgColor "" " | "
+    , ppSep = xmobarColor myXmobarHiColor "" " | "
     , ppWsSep = ""
     , ppLayout = \x -> case x of "Tall"        -> "T"
                                  "Mirror Tall" -> "M"
@@ -566,6 +566,9 @@ xmobarCommands c = " --commands=\'[" ++ List.intercalate ", " c ++ "]\'"
 xmobarPipe :: String -> String -> String
 xmobarPipe f a = "Run PipeReader \"" ++ f ++ "\" \"" ++ a ++ "\""
 
+xmobarSep :: String
+xmobarSep = "<fc=" ++ myXmobarHiColor ++ ">|</fc>"
+
 xmobarTemplate :: String -> String
 xmobarTemplate "eurus" =
   xmobarCommands [ xmobarStdin
@@ -577,8 +580,16 @@ xmobarTemplate "eurus" =
                  , xmobarBattery 600
                  , xmobarDate 10
                  ]
-  ++ " -t \'%StdinReader%}{ | %load% | %memory% | %network% | %bluetooth% | %audio% | %battery% | %date% \'"
-
+  ++ List.concat [ " -t \'%StdinReader%}{ " , xmobarSep
+                 , " %load% ", xmobarSep
+                 , " %memory% ", xmobarSep
+                 , " %network% ", xmobarSep
+                 , " %bluetooth% ", xmobarSep
+                 , " %audio% ", xmobarSep
+                 , " %battery% ", xmobarSep
+                 , " %date% "
+                 , "\'"
+                 ]
 
 xmobarTemplate "eos" =
   xmobarCommands [ xmobarStdin
@@ -589,7 +600,15 @@ xmobarTemplate "eos" =
                  , xmobarPipe xmobarPipeAudio "audio"
                  , xmobarDate 10
                  ]
-  ++ " -t \'%StdinReader%}{ | %load% | %memory% | %network% | %bluetooth% | %audio% | %date% \'"
+  ++ List.concat [ " -t \'%StdinReader%}{ " , xmobarSep
+                 , " %load% ", xmobarSep
+                 , " %memory% ", xmobarSep
+                 , " %network% ", xmobarSep
+                 , " %bluetooth% ", xmobarSep
+                 , " %audio% ", xmobarSep
+                 , " %date% "
+                 , "\'"
+                 ]
 
 xmobarTemplate _ = ""
 

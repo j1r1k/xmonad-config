@@ -1,41 +1,40 @@
-
 import Control.Monad (filterM)
 
-import Data.Char
-import qualified Data.List as List
-import qualified Data.Map as Map
+import Data.Char (toLower)
+import qualified Data.List as List (intercalate, isInfixOf)
+import qualified Data.Map as Map (fromList, lookup, toList, Map)
 
-import Graphics.X11.ExtraTypes.XF86
+import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp)
 
-import Network.HostName
+import Network.HostName (getHostName)
 
-import System.Exit
-import System.IO
+import System.Exit ()
+import System.IO (hPutStrLn)
 
-import Text.Printf
+import Text.Printf (printf)
 import Text.Regex.Posix
 
 import XMonad 
-import XMonad.Actions.CycleWS
-import XMonad.Actions.GroupNavigation
-import XMonad.Actions.UpdatePointer
-import XMonad.Actions.WindowGo
-import XMonad.Hooks.DynamicLog
-import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.ManageHelpers
-import XMonad.Hooks.SetWMName
-import XMonad.Layout.Grid
-import XMonad.Layout.NoBorders
-import XMonad.Layout.PerWorkspace
-import XMonad.Layout.Simplest
-import XMonad.Layout.SubLayouts 
-import XMonad.Prompt
-import XMonad.Prompt.Shell
-import qualified XMonad.StackSet as StackSet 
-import XMonad.Util.NamedWindows
-import XMonad.Util.Run
-import XMonad.Util.WorkspaceCompare
+import XMonad.Actions.CycleWS (doTo, moveTo, nextScreen, shiftNextScreen, WSType(EmptyWS))
+import XMonad.Actions.GroupNavigation (historyHook, nextMatch, nextMatchOrDo, Direction(Backward, Forward, History))
+import XMonad.Actions.UpdatePointer (updatePointer, PointerPosition(Relative))
+import XMonad.Actions.WindowGo ()
+import XMonad.Hooks.DynamicLog (defaultPP, dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
+import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup)
+import XMonad.Hooks.ManageDocks (avoidStruts, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
+import XMonad.Hooks.ManageHelpers (doCenterFloat, isDialog)
+import XMonad.Hooks.SetWMName (setWMName)
+import XMonad.Layout.Grid (Grid(Grid))
+import XMonad.Layout.NoBorders (noBorders, smartBorders)
+import XMonad.Layout.PerWorkspace (onWorkspace)
+import XMonad.Layout.Simplest (Simplest(Simplest))
+import XMonad.Layout.SubLayouts (subTabbed, GroupMsg(Merge, UnMerge))
+import XMonad.Prompt (defaultXPConfig, deleteConsecutive, getNextCompletion, mkXPrompt, Direction1D(Next), XPConfig(..), XPPosition(..), XPrompt(..))
+import XMonad.Prompt.Shell (shellPrompt)
+import qualified XMonad.StackSet as StackSet (focusDown, focusMaster, focusUp, focusWindow, greedyView, insertUp, index, integrate', shift, shiftMaster, sink, stack, swapDown, swapMaster, swapUp, tag, workspaces)
+import XMonad.Util.NamedWindows (getName)
+import XMonad.Util.Run(spawnPipe)
+import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
 -----------------------------------------------------------------------
 -- Customizations

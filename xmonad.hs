@@ -17,7 +17,7 @@ import Text.Regex.Posix
 import XMonad 
 import XMonad.Actions.CycleWS (doTo, moveTo, nextScreen, shiftNextScreen, WSType(EmptyWS))
 import XMonad.Actions.GroupNavigation (historyHook, nextMatch, nextMatchOrDo, Direction(Backward, Forward, History))
-import XMonad.Actions.UpdatePointer (updatePointer, PointerPosition(Relative))
+import XMonad.Actions.UpdatePointer (updatePointer)
 import XMonad.Actions.WindowGo ()
 import XMonad.Hooks.DynamicLog (defaultPP, dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup)
@@ -399,7 +399,7 @@ myLogHook xmobar =
                                  _ -> x
     })
     >> historyHook
-    >> updatePointer (Relative 0.5 0.5)
+    >> updatePointer (0.5, 0.5) (0, 0)
 
 ------------------------------------------------------------------------
 -- Startup hook

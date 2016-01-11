@@ -88,7 +88,7 @@ myXmobarColorGood :: String
 myXmobarColorGood = "#9ec400"
 
 myXFTFont :: String
-myXFTFont       = "xft:DejaVu Sans Mono for Powerline-10:antialias=true"
+myXFTFont       = "xft:DejaVu Sans Mono-10:antialias=true"
 
 myBrightnessStep :: String
 myBrightnessStep        = "5"

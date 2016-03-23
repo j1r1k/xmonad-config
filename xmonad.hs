@@ -20,7 +20,7 @@ import XMonad.Actions.GroupNavigation (historyHook, nextMatch, nextMatchOrDo, Di
 import XMonad.Actions.UpdatePointer (updatePointer)
 import XMonad.Actions.WindowGo ()
 import XMonad.Hooks.DynamicLog (defaultPP, dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
-import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup)
+import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup, fullscreenEventHook)
 import XMonad.Hooks.ManageDocks (avoidStruts, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
 import XMonad.Hooks.ManageHelpers (doCenterFloat, isDialog)
 import XMonad.Hooks.SetWMName (setWMName)
@@ -378,7 +378,7 @@ myManageHook = manageDocks <+> composeAll
 -- Event handling
 ------------------------------------------------------------------------
 
-myEventHook = mempty <+> docksEventHook
+myEventHook = mempty <+> docksEventHook <+> fullscreenEventHook
 
 ------------------------------------------------------------------------
 -- Status bars and logging

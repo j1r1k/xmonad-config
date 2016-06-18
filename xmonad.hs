@@ -1,8 +1,8 @@
 import Control.Monad (filterM)
 
-import Data.Char (toLower)
-import qualified Data.List as List (concat, intercalate, isInfixOf)
-import qualified Data.Map as Map (fromList, lookup, toList, Map)
+import Data.Default (def)
+import qualified Data.List as List (concat, intercalate)
+import qualified Data.Map as Map (fromList, Map)
 
 import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp)
 
@@ -12,27 +12,25 @@ import System.Exit ()
 import System.IO (hPutStrLn)
 
 import Text.Printf (printf)
-import Text.Regex.Posix
 
 import XMonad 
 import XMonad.Actions.CycleWS (doTo, moveTo, nextScreen, shiftNextScreen, WSType(EmptyWS))
 import XMonad.Actions.GroupNavigation (historyHook, nextMatch, nextMatchOrDo, Direction(Backward, Forward, History))
 import XMonad.Actions.UpdatePointer (updatePointer)
-import XMonad.Actions.WindowGo ()
+
 import XMonad.Hooks.DynamicLog (defaultPP, dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup, fullscreenEventHook)
 import XMonad.Hooks.ManageDocks (avoidStruts, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
 import XMonad.Hooks.ManageHelpers (doCenterFloat, isDialog)
 import XMonad.Hooks.SetWMName (setWMName)
+
 import XMonad.Layout.Grid (Grid(Grid))
 import XMonad.Layout.NoBorders (noBorders, smartBorders)
-import XMonad.Layout.PerWorkspace (onWorkspace)
-import XMonad.Layout.Simplest (Simplest(Simplest))
-import XMonad.Layout.SubLayouts (subTabbed, GroupMsg(Merge, UnMerge))
-import XMonad.Prompt (defaultXPConfig, deleteConsecutive, getNextCompletion, mkXPrompt, Direction1D(Next), XPConfig(..), XPPosition(..), XPrompt(..))
+
+import XMonad.Prompt (defaultXPConfig, deleteConsecutive, Direction1D(Next), XPPosition(..), XPConfig(..))
 import XMonad.Prompt.Shell (shellPrompt)
-import qualified XMonad.StackSet as StackSet (focusDown, focusMaster, focusUp, focusWindow, greedyView, insertUp, index, integrate', shift, shiftMaster, sink, stack, swapDown, swapMaster, swapUp, tag, workspaces)
-import XMonad.Util.NamedWindows (getName)
+import qualified XMonad.StackSet as StackSet (focusDown, focusMaster, focusUp, greedyView, shift, shiftMaster, sink, swapDown, swapMaster, swapUp)
+
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
@@ -42,26 +40,18 @@ import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
 myTerminal :: String
 myTerminal      = "urxvt"
+
 myTerminalClass :: String
 myTerminalClass = "URxvt"
-myBrowser :: String
-myBrowser       = "firefox"
-myBrowserClass :: String
-myBrowserClass  = "Firefox"
 
-myFocusFollowsMouse :: Bool
-myFocusFollowsMouse = True
+myBrightnessStep :: String
+myBrightnessStep        = "5"
 
-myBorderWidth :: Dimension
-myBorderWidth   = 2
+myBrightnessDefaultLow :: String
+myBrightnessDefaultLow  = "15"
 
-myModMask :: KeyMask
-myModMask       = mod4Mask
---altMask :: KeyMask
---altMask         = mod1Mask
-
-myWorkspaces :: [String]
-myWorkspaces    = ["1","2","3","4","5","6","7","8","9","0","A","B"]
+myBrightnessDefaultHigh :: String
+myBrightnessDefaultHigh = "50"
 
 myNormalBorderColor :: String
 myNormalBorderColor  = "#dcdccc"
@@ -69,8 +59,11 @@ myNormalBorderColor  = "#dcdccc"
 myFocusedBorderColor :: String
 myFocusedBorderColor = "#de7168"
 
+myXFTFont :: String
+myXFTFont       = "xft:DejaVu Sans Mono-10:antialias=true"
+
 myXmobarFgColor :: String
-myXmobarFgColor = myNormalBorderColor
+myXmobarFgColor = "#dcdccc"
 
 myXmobarBgColor :: String
 myXmobarBgColor = "#000000"
@@ -78,31 +71,40 @@ myXmobarBgColor = "#000000"
 myXmobarHiColor :: String
 myXmobarHiColor = "#575757"
 
-myXmobarCursorColor :: String
-myXmobarCursorColor  = "#ff8278"
+myXmobarColorRed :: String
+myXmobarColorRed = "#ff8278"
 
-myXmobarColorBad :: String
-myXmobarColorBad = myXmobarCursorColor
+myXmobarColorGrn :: String
+myXmobarColorGrn = "#9ec400"
 
-myXmobarColorGood :: String
-myXmobarColorGood = "#9ec400"
-
-myXFTFont :: String
-myXFTFont       = "xft:DejaVu Sans Mono-10:antialias=true"
-
-myBrightnessStep :: String
-myBrightnessStep        = "5"
-myBrightnessDefaultLow :: String
-myBrightnessDefaultLow  = "15"
-
-myBrightnessDefaultHigh :: String
-myBrightnessDefaultHigh = "50"
-
-xmobarPipeAudio :: String
+xmobarPipeAudio :: FilePath
 xmobarPipeAudio = "/home/jirik/.xmonad/xmobar-pipe-audio"
 
-xmobarPipeBluetooth :: String
+xmobarPipeBluetooth :: FilePath
 xmobarPipeBluetooth = "/home/jirik/.xmonad/xmobar-pipe-bluetooth"
+
+
+myFocusFollowsMouse :: Bool
+myFocusFollowsMouse = True
+
+myBorderWidth :: Dimension
+myBorderWidth = 2
+
+myModMask :: KeyMask
+myModMask = mod4Mask
+
+myWorkspaces :: [String]
+myWorkspaces = ["1","2","3","4","5","6","7","8","9","0","A","B"]
+
+-----------------------------------------------------------------------
+-- Helpers
+-----------------------------------------------------------------------
+
+createPipe :: (MonadIO m) => FilePath -> m ()
+createPipe path = spawn $ printf "test -p \"%s\" || mkfifo \"%s\"" path path
+
+constantToFile :: (MonadIO m, Show a) => a -> FilePath -> m ()
+constantToFile a file = spawn $ printf "echo \"%s\" > \"%s\"" (show a) file
 
 -----------------------------------------------------------------------
 -- Key bindings helpers
@@ -111,23 +113,8 @@ xmobarPipeBluetooth = "/home/jirik/.xmonad/xmobar-pipe-bluetooth"
 xF86XK_AudioMicMute ::KeySym
 xF86XK_AudioMicMute = 0x1008ffb2
 
---contains :: (Functor f, Eq a) => f [a] -> [a] -> f Bool
---contains q x = fmap (List.isInfixOf x) q
-
---nextMatchForward :: Query Bool -> X ()
---nextMatchForward = nextMatch Forward
-
---nextMatchForwardClass :: String -> X ()
---nextMatchForwardClass c = nextMatchForward (className =? c)
-
---nextMatchForwardClassAndTitle :: String -> String -> X ()
---nextMatchForwardClassAndTitle c t = nextMatchForward ((className =? c) <&&> (title `contains` t))
-
 nextMatchOrDoForward :: Query Bool -> String -> X ()
 nextMatchOrDoForward p s = nextMatchOrDo Forward p (spawn s)
-
---nextMatchOrDoForwardTitle :: String -> String -> X ()
---nextMatchOrDoForwardTitle t = nextMatchOrDoForward (title =? t)
 
 nextMatchOrDoForwardClass :: String -> String -> X ()
 nextMatchOrDoForwardClass c = nextMatchOrDoForward (className =? c)
@@ -135,34 +122,20 @@ nextMatchOrDoForwardClass c = nextMatchOrDoForward (className =? c)
 followTo :: Direction1D -> WSType -> X ()
 followTo dir t = doTo dir t getSortByIndex (\w -> windows (StackSet.shift w) >> windows (StackSet.greedyView w))
 
---spawnN :: [String] -> X ()
---spawnN = spawn . List.intercalate "; "
-
---openInTerminal :: String -> String
---openInTerminal c = "it " ++ c
-
-masterWindow :: XState -> Window
-masterWindow = head . take 1 . StackSet.index . windowset
-
-mergeWithMaster :: X ()
-mergeWithMaster = withFocused (\f -> sendMessage . Merge f =<< gets masterWindow)
-
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
 ------------------------------------------------------------------------
 
 myKeys :: XConfig Layout -> Map.Map (KeyMask, KeySym) (X ())
-myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
+myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   [ ((modm ,              xK_x     ), nextMatchOrDoForwardClass myTerminalClass myTerminal)
-  
+
   , ((modm .|. shiftMask, xK_x     ), spawn myTerminal)
-  
-  , ((modm ,              xK_f     ), nextMatchOrDoForwardClass myBrowserClass myBrowser)
 
-  , ((modm .|. shiftMask, xK_f     ), spawn myBrowser)
+  , ((modm ,              xK_f     ), nextMatchOrDoForwardClass "Firefox" "firefox")
 
-  --, ((modm ,              xK_d     ), windowMatchPrompt (className =? myBrowserClass) myXPConfig { alwaysHighlight = True, searchPredicate = hasAllWords } )
+  , ((modm .|. shiftMask, xK_f     ), spawn "firefox")
 
   , ((modm ,              xK_g     ), nextMatchOrDoForwardClass "Claws-mail" "claws-mail")
 
@@ -177,13 +150,13 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
   , ((modm .|. shiftMask, xK_Escape), spawn "suspend-now")
 
   , ((modm ,              xK_s     ), nextMatchOrDoForwardClass "Keepassx" "keepassx")
-  
+
   , ((modm ,              xK_e     ), nextMatchOrDoForwardClass "Gvim" "gvim")
 
   , ((modm .|. shiftMask, xK_e     ), spawn "gvim")
 
   , ((modm ,              xK_r     ), nextMatchOrDoForwardClass "jetbrains-idea-ce" "idea")
-  
+
   , ((modm .|. shiftMask, xK_r     ), spawn "idea")
 
   , ((modm ,              xK_v     ), nextMatchOrDoForwardClass "Vlc" "nlvlc")
@@ -284,14 +257,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
   -- Go to previous window
   , ((modm              , xK_Tab   ), nextMatch History (return True))
 
-  -- Pull window from sublayout
-  , ((modm              , xK_u     ), withFocused (sendMessage . UnMerge))
-
-
   , ((shiftMask         , xK_Escape), spawn "xdotool key Caps_Lock")
-
-  -- Merge window with master
-  --, ((modm              , xK_i     ), mergeWithMaster )
 
   ]
   ++
@@ -305,7 +271,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = Map.fromList $
 ------------------------------------------------------------------------
 
 myMouseBindings :: XConfig t -> Map.Map (KeyMask, Button) (Window -> X ())
-myMouseBindings (XConfig {XMonad.modMask = modm}) = Map.fromList
+myMouseBindings XConfig {XMonad.modMask = modm} = Map.fromList
 
   -- mod-button1, Set the window to floating mode and move by dragging
   [ ((modm , button1), \w -> focus w >> mouseMoveWindow w
@@ -317,10 +283,6 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = Map.fromList
   -- mod-button3, Set the window to floating mode and resize by dragging
   , ((modm , button3), \w -> focus w >> mouseResizeWindow w
                                      >> windows StackSet.shiftMaster)
-
-  --, ((mod4Mask, button4), \_ -> windows StackSet.focusUp )
-
-  --, ((mod4Mask, button5), \_ -> windows StackSet.focusDown)
   ]
 
 ------------------------------------------------------------------------
@@ -348,30 +310,9 @@ myLayout = avoidStruts def
 -- Window rules:
 ------------------------------------------------------------------------
 
---
--- hook to shift to next empty workspace
---
---doShiftToNextEmptyWS :: Query (Data.Monoid.Endo WindowSet)
---doShiftToNextEmptyWS = liftX (findWorkspace getSortByIndex Next EmptyWS 1) >>= doShift
-
---
--- Hook to merge new window with master if it matches the query
--- https://wiki.haskell.org/Xmonad/Config_archive/adamvo's_xmonad.hs
---
---doQueryMerge :: Monoid b => Query Bool -> Query b
---doQueryMerge qry = do
---  w <- ask
---  aw <- liftX $ filterM (runQuery qry) =<< gets (take 1 . StackSet.index . windowset)
---  liftX $ windows $ StackSet.insertUp w
---  liftX $ (sendMessage . XMonad.Layout.SubLayouts.Merge w) $ head aw
---  liftX $ windows StackSet.shiftMaster
---  idHook
-
 myManageHook :: ManageHook
 myManageHook = manageDocks <+> composeAll
---isDialog <&&> className /=? "Keepassx" --> doCenterFloat <+> doF StackSet.focusDown,
-  [ isDialog                     --> doCenterFloat
-  --, className =? myBrowserClass  --> doQueryMerge (className =? myBrowserClass)
+  [ isDialog --> doCenterFloat
   ]
 
 ------------------------------------------------------------------------
@@ -385,10 +326,10 @@ myEventHook = mempty <+> docksEventHook <+> fullscreenEventHook
 ------------------------------------------------------------------------
 
 myLogHook xmobar = 
-  dynamicLogWithPP (defaultPP
+  dynamicLogWithPP (def
     { ppOutput = hPutStrLn xmobar
     , ppTitle = xmobarColor myXmobarFgColor "" . shorten 110
-    , ppCurrent = xmobarColor myXmobarCursorColor myXmobarHiColor . pad
+    , ppCurrent = xmobarColor myXmobarColorRed myXmobarHiColor . pad
     , ppHidden = pad
     , ppSep = xmobarColor myXmobarHiColor "" " | "
     , ppWsSep = ""
@@ -407,10 +348,13 @@ myLogHook xmobar =
 
 myStartupHook :: X ()
 myStartupHook =
-  ewmhDesktopsStartup
+     ewmhDesktopsStartup
   >> setWMName "LG3D"
-  -- trigger audio display update on startup
+  >> constantToFile myXmobarColorGrn "${HOME}/.xmonad/xmobar-color-grn"
+  >> constantToFile myXmobarColorRed "${HOME}/.xmonad/xmobar-color-red"
+  >> createPipe xmobarPipeAudio
   >> spawn "do-every 10 xmobar-update-audio-status"
+  >> createPipe xmobarPipeBluetooth
   >> spawn "do-every 10 xmobar-update-bluetooth-status"
 
 ------------------------------------------------------------------------
@@ -419,74 +363,18 @@ myStartupHook =
 
 myXPConfig :: XPConfig
 myXPConfig =
-  defaultXPConfig { font                  = myXFTFont
-                  , bgColor               = myXmobarBgColor
-                  , fgColor               = myXmobarFgColor
-                  , bgHLight              = myXmobarCursorColor
-                  , fgHLight              = myXmobarBgColor
-                  , borderColor           = myFocusedBorderColor
-                  , promptBorderWidth     = 1
-                  , height                = 16
-                  , position              = Bottom
-                  , historySize           = 100
-                  , historyFilter         = deleteConsecutive
-                  }
-
---mySearchEngine :: XMonad.Actions.Search.SearchEngine
---mySearchEngine = searchEngine "" ""
-
-
-------------------------------------------------------------------------
--- Window Prompt which displays only windows that match query
-------------------------------------------------------------------------
-
---hasAllWords :: String -> String -> Bool
---hasAllWords ws xs = all (\w -> w `List.isInfixOf` lxs) $ words lws
---  where lws = map toLower ws
---        lxs = map toLower xs
---
---
----- | Returns the window name as will be listed in dmenu.
-----   Lowercased, for your convenience (since dmenu is case-sensitive).
-----   Tagged with the workspace ID, to guarantee uniqueness, and to let the user
-----   know where he's going.
---decorateName :: WindowSpace -> Window -> X String
---decorateName ws w = do
---  name <- getName w
---  return $ "[" ++ StackSet.tag ws ++ "] " ++ show name
---
-----
----- | A map from window names to Windows.
---windowMap :: X (Map.Map String Window)
---windowMap = do
---    ws <- gets windowset
---    Map.fromList <$> concat <$> mapM keyValuePairs (StackSet.workspaces ws)
---  where keyValuePairs ws = mapM (keyValuePair ws) $ StackSet.integrate' (StackSet.stack ws)
---        keyValuePair ws w = flip (,) w <$> decorateName ws w
---
---windowMapMatch :: Query Bool -> X (Map.Map String Window)
---windowMapMatch qry = do
---  w <- windowMap
---  x <- filterM (runQuery qry . snd) $ Map.toList w
---  return $ Map.fromList x
---
---data WindowMatchPrompt = WindowMatchPrompt
---
---instance XPrompt WindowMatchPrompt where
---  showXPrompt _ = "> "
---  commandToComplete _ c = c
---  nextCompletion _ = getNextCompletion
---
---windowMatchPrompt :: Query Bool -> XPConfig -> X ()
---windowMatchPrompt qry c = do
---    a <- fmap action wm
---    w <- wm
---    mkXPrompt WindowMatchPrompt c (compList w) a
---  where
---    winAction a m = flip whenJust (windows . a) . flip Map.lookup m
---    action        = winAction StackSet.focusWindow
---    wm            = windowMapMatch qry
---    compList m s  = return . filter (searchPredicate c s) . map fst . Map.toList $ m
+  def { font              = myXFTFont
+      , bgColor           = myXmobarBgColor
+      , fgColor           = myXmobarFgColor
+      , bgHLight          = myXmobarColorRed
+      , fgHLight          = myXmobarBgColor
+      , borderColor       = myFocusedBorderColor
+      , promptBorderWidth = 1
+      , height            = 16
+      , position          = Bottom
+      , historySize       = 100
+      , historyFilter     = deleteConsecutive
+      }
 
 ------------------------------------------------------------------------
 -- Xmobar configuration
@@ -511,19 +399,13 @@ xmobarCommand :: String -> [String] -> String -> Integer -> String
 xmobarCommand c p = printf "Run Com \"%s\" %s \"%s\" %d" c (xmobarComParameters p)
 
 xmobarLoad :: Integer -> String -> Integer -> String
-xmobarLoad c = xmobarCommand "xmobar-load-status" [ myXmobarColorBad, myXmobarColorGood, show c ]
+xmobarLoad c = xmobarCommand "xmobar-load-status" [ myXmobarColorRed, myXmobarColorGrn, show c ]
 
 xmobarBluetooth :: String -> Integer -> String
-xmobarBluetooth = xmobarCommand "xmobar-bluetooth-status" [ myXmobarColorBad, myXmobarColorGood ]
-
---xmobarAudio :: String -> Integer -> String
---xmobarAudio = xmobarCommand "xmobar-audio-status" [ myXmobarColorBad ]
-
-xmobarWicd :: String -> Integer -> String
-xmobarWicd = xmobarCommand "xmobar-wicd-status" [ myXmobarColorBad ]
+xmobarBluetooth = xmobarCommand "xmobar-bluetooth-status" [ myXmobarColorRed, myXmobarColorGrn ]
 
 xmobarNetwork :: String -> String -> String -> Integer -> String
-xmobarNetwork lan wlan = xmobarCommand "xmobar-net-status" [ myXmobarColorBad, myXmobarColorGood, lan, wlan ]
+xmobarNetwork lan wlan = xmobarCommand "xmobar-net-status" [ myXmobarColorRed, myXmobarColorGrn, lan, wlan ]
 
 xmobarBattery :: Integer -> String
 xmobarBattery rr = concat
@@ -532,12 +414,12 @@ xmobarBattery rr = concat
   , xmobarComParameters [ "--template", "<acstatus> : <left>% : <timeleft>h"
                         , "--Low"     , "10"
                         , "--High"    , "80"
-                        , "--low"     , myXmobarColorBad
+                        , "--low"     , myXmobarColorRed
                         , "--normal"  , myXmobarFgColor
-                        , "--high"    , myXmobarColorGood
+                        , "--high"    , myXmobarColorGrn
                         , "--"
-                        , "-o", "<fc=" ++ myXmobarColorBad  ++ ">D</fc>"
-                        , "-O", "<fc=" ++ myXmobarColorGood ++ ">C</fc>"
+                        , "-o", "<fc=" ++ myXmobarColorRed  ++ ">D</fc>"
+                        , "-O", "<fc=" ++ myXmobarColorGrn ++ ">C</fc>"
                         , "-i", "<fc=" ++ myXmobarFgColor   ++ ">F</fc>"
                         ]
   , show rr
@@ -549,13 +431,12 @@ xmobarMemory rr = concat
   , xmobarComParameters [ "--template", "M : <usedratio>%"
                         , "--Low"     , "20"
                         , "--High"    , "90"
-                        , "--low"     , myXmobarColorGood
+                        , "--low"     , myXmobarColorGrn
                         , "--normal"  , myXmobarFgColor
-                        , "--high"    , myXmobarColorBad
+                        , "--high"    , myXmobarColorRed
                         ]
   , show rr
   ]
-
 
 xmobarDate :: Integer -> String
 xmobarDate rr = "Run Date \"%H:%M:%S\" \"date\" " ++ show rr
@@ -609,6 +490,7 @@ xmobarTemplate "eos" =
                  , " %date% "
                  , "\'"
                  ]
+xmobarTemplate "notus" = xmobarTemplate "eurus"
 
 xmobarTemplate _ = ""
 
@@ -624,22 +506,21 @@ main = do
   hostnm <- getHostName
   xmobar <- spawnPipe ("xmobar" ++ xmobarParameters hostnm)
 
-  xmonad $ defaultConfig {
-    -- simple stuff
-    terminal           = myTerminal,
-    focusFollowsMouse  = myFocusFollowsMouse,
-    borderWidth        = myBorderWidth,
-    modMask            = myModMask,
-    workspaces         = myWorkspaces,
-    normalBorderColor  = myNormalBorderColor,
-    focusedBorderColor = myFocusedBorderColor,
+  xmonad $ def
+    { terminal           = myTerminal
+    , focusFollowsMouse  = myFocusFollowsMouse
+    , borderWidth        = myBorderWidth
+    , modMask            = myModMask
+    , workspaces         = myWorkspaces
+    , normalBorderColor  = myNormalBorderColor
+    , focusedBorderColor = myFocusedBorderColor
     -- key bindings
-    keys               = myKeys,
-    mouseBindings      = myMouseBindings,
+    , keys               = myKeys
+    , mouseBindings      = myMouseBindings
     -- hooks, layouts
-    layoutHook         = myLayout,
-    manageHook         = myManageHook,
-    handleEventHook    = myEventHook,
-    logHook            = myLogHook xmobar,
-    startupHook        = myStartupHook
-  }
+    , layoutHook         = myLayout
+    , manageHook         = myManageHook
+    , handleEventHook    = myEventHook
+    , logHook            = myLogHook xmobar
+    , startupHook        = myStartupHook
+    }

@@ -1,7 +1,7 @@
 import Control.Monad (filterM)
 
 import Data.Default (def)
-import qualified Data.List as List (concat, intercalate)
+import qualified Data.List as List (concat, intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, Map)
 
 import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp)
@@ -119,6 +119,12 @@ nextMatchOrDoForward p s = nextMatchOrDo Forward p (spawn s)
 nextMatchOrDoForwardClass :: String -> String -> X ()
 nextMatchOrDoForwardClass c = nextMatchOrDoForward (className =? c)
 
+contains :: (Functor f, Eq a) => f [a] -> [a] -> f Bool
+contains q x = fmap (List.isInfixOf x) q
+
+nextMatchOrDoForwardTitleContains :: String -> String -> X ()
+nextMatchOrDoForwardTitleContains t = nextMatchOrDoForward (title `contains` t)
+
 followTo :: Direction1D -> WSType -> X ()
 followTo dir t = doTo dir t getSortByIndex (\w -> windows (StackSet.shift w) >> windows (StackSet.greedyView w))
 
@@ -149,11 +155,9 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   , ((modm .|. shiftMask, xK_Escape), spawn "suspend-now")
 
-  , ((modm ,              xK_s     ), nextMatchOrDoForwardClass "Keepassx" "keepassx")
+  , ((modm ,              xK_s     ), nextMatchOrDoForwardTitleContains "safe.kdb" "keepassx-safe")
 
-  , ((modm ,              xK_e     ), nextMatchOrDoForwardClass "Gvim" "gvim")
-
-  , ((modm .|. shiftMask, xK_e     ), spawn "gvim")
+  , ((modm .|. shiftMask, xK_s     ), nextMatchOrDoForwardTitleContains "safe-secure.kdb" "keepassx-safe-secure")
 
   , ((modm ,              xK_r     ), nextMatchOrDoForwardClass "jetbrains-idea-ce" "idea")
 

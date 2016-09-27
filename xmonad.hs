@@ -455,6 +455,24 @@ xmobarSep :: String
 xmobarSep = "<fc=" ++ myXmobarHiColor ++ ">|</fc>"
 
 xmobarTemplate :: String -> String
+xmobarTemplate "eos" =
+  xmobarCommands [ xmobarStdin
+                 , xmobarLoad 4 "load" 100
+                 , xmobarMemory 100
+                 , xmobarNetwork "enp4s0" "" "network" 600
+                 , xmobarPipe xmobarPipeBluetooth "bluetooth"
+                 , xmobarPipe xmobarPipeAudio "audio"
+                 , xmobarDate 10
+                 ]
+  ++ List.concat [ " -t \'%StdinReader%}{ " , xmobarSep
+                 , " %load% ", xmobarSep
+                 , " %memory% ", xmobarSep
+                 , " %network% ", xmobarSep
+                 , " %bluetooth% ", xmobarSep
+                 , " %audio% ", xmobarSep
+                 , " %date% "
+                 , "\'"
+                 ]
 xmobarTemplate "eurus" =
   xmobarCommands [ xmobarStdin
                  , xmobarLoad 4 "load" 100
@@ -475,26 +493,24 @@ xmobarTemplate "eurus" =
                  , " %date% "
                  , "\'"
                  ]
-
-xmobarTemplate "eos" =
+xmobarTemplate "notus" =
   xmobarCommands [ xmobarStdin
                  , xmobarLoad 4 "load" 100
                  , xmobarMemory 100
-                 , xmobarNetwork "enp4s0" "" "network" 600
-                 , xmobarPipe xmobarPipeBluetooth "bluetooth"
+                 , xmobarNetwork "enp0s25" "wls3" "network" 600
                  , xmobarPipe xmobarPipeAudio "audio"
+                 , xmobarBattery 600
                  , xmobarDate 10
                  ]
   ++ List.concat [ " -t \'%StdinReader%}{ " , xmobarSep
                  , " %load% ", xmobarSep
                  , " %memory% ", xmobarSep
                  , " %network% ", xmobarSep
-                 , " %bluetooth% ", xmobarSep
                  , " %audio% ", xmobarSep
+                 , " %battery% ", xmobarSep
                  , " %date% "
                  , "\'"
                  ]
-xmobarTemplate "notus" = xmobarTemplate "eurus"
 
 xmobarTemplate _ = ""
 

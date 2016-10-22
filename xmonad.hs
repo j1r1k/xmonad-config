@@ -139,9 +139,9 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   , ((modm .|. shiftMask, xK_x     ), spawn myTerminal)
 
-  , ((modm ,              xK_f     ), nextMatchOrDoForwardClass "Firefox" "firefox")
+  , ((modm ,              xK_f     ), nextMatchOrDoForwardClass "Firefox" "firefox-primary")
 
-  , ((modm .|. shiftMask, xK_f     ), spawn "firefox")
+  , ((modm .|. shiftMask, xK_f     ), spawn "firefox-primary")
 
   , ((modm ,              xK_g     ), nextMatchOrDoForwardClass "Claws-mail" "claws-mail")
 

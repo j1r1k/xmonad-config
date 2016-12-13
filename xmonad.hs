@@ -1,5 +1,3 @@
-import Control.Monad (filterM)
-
 import Data.Default (def)
 import qualified Data.List as List (concat, intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, Map)
@@ -18,7 +16,7 @@ import XMonad.Actions.CycleWS (doTo, moveTo, nextScreen, shiftNextScreen, WSType
 import XMonad.Actions.GroupNavigation (historyHook, nextMatch, nextMatchOrDo, Direction(Backward, Forward, History))
 import XMonad.Actions.UpdatePointer (updatePointer)
 
-import XMonad.Hooks.DynamicLog (defaultPP, dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
+import XMonad.Hooks.DynamicLog (dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup, fullscreenEventHook)
 import XMonad.Hooks.ManageDocks (avoidStruts, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
 import XMonad.Hooks.ManageHelpers (doCenterFloat, isDialog)
@@ -27,7 +25,7 @@ import XMonad.Hooks.SetWMName (setWMName)
 import XMonad.Layout.Grid (Grid(Grid))
 import XMonad.Layout.NoBorders (noBorders, smartBorders)
 
-import XMonad.Prompt (defaultXPConfig, deleteConsecutive, Direction1D(Next), XPPosition(..), XPConfig(..))
+import XMonad.Prompt (deleteConsecutive, Direction1D(Next), XPPosition(..), XPConfig(..))
 import XMonad.Prompt.Shell (shellPrompt)
 import qualified XMonad.StackSet as StackSet (focusDown, focusMaster, focusUp, greedyView, shift, shiftMaster, sink, swapDown, swapMaster, swapUp)
 
@@ -139,9 +137,9 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   , ((modm .|. shiftMask, xK_x     ), spawn myTerminal)
 
-  , ((modm ,              xK_f     ), nextMatchOrDoForwardClass "Firefox" "firefox-primary")
+  , ((modm ,              xK_f     ), nextMatchOrDoForwardClass "Firefox" "firefox")
 
-  , ((modm .|. shiftMask, xK_f     ), spawn "firefox-primary")
+  , ((modm .|. shiftMask, xK_f     ), spawn "firefox")
 
   , ((modm ,              xK_g     ), nextMatchOrDoForwardClass "Claws-mail" "claws-mail")
 
@@ -293,9 +291,9 @@ myMouseBindings XConfig {XMonad.modMask = modm} = Map.fromList
 -- Layouts:
 ------------------------------------------------------------------------
 
-myLayout = avoidStruts def
+myLayout = avoidStruts layout
   where
-    def  = smartBorders tiled
+    layout  = smartBorders tiled
            ||| smartBorders (Mirror tiled)
            ||| noBorders Full
            ||| smartBorders Grid
@@ -404,9 +402,6 @@ xmobarCommand c p = printf "Run Com \"%s\" %s \"%s\" %d" c (xmobarComParameters 
 
 xmobarLoad :: Integer -> String -> Integer -> String
 xmobarLoad c = xmobarCommand "xmobar-load-status" [ myXmobarColorRed, myXmobarColorGrn, show c ]
-
-xmobarBluetooth :: String -> Integer -> String
-xmobarBluetooth = xmobarCommand "xmobar-bluetooth-status" [ myXmobarColorRed, myXmobarColorGrn ]
 
 xmobarNetwork :: String -> String -> String -> Integer -> String
 xmobarNetwork lan wlan = xmobarCommand "xmobar-net-status" [ myXmobarColorRed, myXmobarColorGrn, lan, wlan ]

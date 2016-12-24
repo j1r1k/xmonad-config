@@ -1,4 +1,3 @@
-import Data.Default (def)
 import qualified Data.List as List (concat, intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, Map)
 

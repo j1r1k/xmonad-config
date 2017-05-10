@@ -140,7 +140,7 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   , ((modm .|. shiftMask, xK_f     ), spawn "firefox")
 
-  , ((modm ,              xK_g     ), nextMatchOrDoForwardClass "Claws-mail" "claws-mail")
+  , ((modm ,              xK_g     ), nextMatchOrDoForwardClass "Thunderbird" "thunderbird")
 
   , ((modm ,              xK_z     ), shellPrompt myXPConfig)
 

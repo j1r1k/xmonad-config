@@ -42,9 +42,12 @@ packages:
 extra-deps:
 - xmonad-contrib-0.12
 - X11-xft-0.3.1
+- xmobar-0.24.5
 
 # Override default flag values for local packages and extra-deps
-flags: {}
+flags: 
+  xmobar:
+    with_xft: true
 
 # Extra package databases containing global packages
 extra-package-dbs: []

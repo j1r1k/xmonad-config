@@ -518,7 +518,10 @@ xmobarParameters h = xmobarLook ++ xmobarTemplate h
 main :: IO ()
 main = do
   hostnm <- getHostName
-  xmobar <- spawnPipe ("xmobar" ++ xmobarParameters hostnm)
+  let shortHostnm = takeWhile (/= '.') hostnm
+  xmobar <- spawnPipe ("xmobar" ++ xmobarParameters shortHostnm)
+  _ <- spawn "xmobar-update-audio-status"
+  _ <- spawn "xmobar-update-bluetooth-status"
 
   xmonad $ def
     { terminal           = myTerminal

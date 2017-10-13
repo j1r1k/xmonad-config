@@ -36,7 +36,7 @@ import XMonad.Util.WorkspaceCompare (getSortByIndex)
 -----------------------------------------------------------------------
 
 myTerminal :: String
-myTerminal      = "urxvt"
+myTerminal      = "urxvt256c"
 
 myTerminalClass :: String
 myTerminalClass = "URxvt"

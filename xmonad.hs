@@ -60,19 +60,19 @@ myXFTFont :: String
 myXFTFont       = "xft:DejaVu Sans Mono-10:antialias=true"
 
 myXmobarFgColor :: String
-myXmobarFgColor = "#dcdccc"
+myXmobarFgColor = "#c7c7c7"
 
 myXmobarBgColor :: String
 myXmobarBgColor = "#000000"
 
 myXmobarHiColor :: String
-myXmobarHiColor = "#575757"
+myXmobarHiColor = "#333333"
 
 myXmobarColorRed :: String
 myXmobarColorRed = "#ff8278"
 
 myXmobarColorGrn :: String
-myXmobarColorGrn = "#9ec400"
+myXmobarColorGrn = "#d6fcba"
 
 xmobarPipeAudio :: FilePath
 xmobarPipeAudio = "/home/jirik/.xmonad/xmobar-pipe-audio"

@@ -20,7 +20,7 @@ executable xmonad
                      , containers
                      , data-default
                      , hostname
-                     , xmonad
-                     , xmonad-contrib
+                     , xmonad >= 0.13
+                     , xmonad-contrib >= 0.13
                      , X11
   default-language:    Haskell2010

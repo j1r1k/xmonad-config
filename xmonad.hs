@@ -17,7 +17,7 @@ import XMonad.Actions.UpdatePointer (updatePointer)
 
 import XMonad.Hooks.DynamicLog (dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup, fullscreenEventHook)
-import XMonad.Hooks.ManageDocks (avoidStruts, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
+import XMonad.Hooks.ManageDocks (avoidStruts, docks, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
 import XMonad.Hooks.ManageHelpers (doCenterFloat, isDialog)
 import XMonad.Hooks.SetWMName (setWMName)
 
@@ -523,7 +523,7 @@ main = do
   _ <- spawn "xmobar-update-audio-status"
   _ <- spawn "xmobar-update-bluetooth-status"
 
-  xmonad $ def
+  xmonad $ docks $ def
     { terminal           = myTerminal
     , focusFollowsMouse  = myFocusFollowsMouse
     , borderWidth        = myBorderWidth

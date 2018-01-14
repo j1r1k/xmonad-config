@@ -182,7 +182,7 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   , ((modm ,               xK_BackSpace ), spawn "screenshot")
 
-  , ((modm .|. shiftMask , xK_BackSpace ), spawn "screenshot-window")
+  , ((modm .|. shiftMask , xK_BackSpace ), spawn "screenshot-select")
 
   , ((0 , xF86XK_MonBrightnessDown ), spawn ("xbacklight -" ++ myBrightnessStep ))
 
@@ -358,9 +358,7 @@ myStartupHook =
   >> constantToFile myXmobarColorGrn "${HOME}/.xmonad/xmobar-color-grn"
   >> constantToFile myXmobarColorRed "${HOME}/.xmonad/xmobar-color-red"
   >> createPipe xmobarPipeAudio
-  >> spawn "do-every 10 xmobar-update-audio-status"
   >> createPipe xmobarPipeBluetooth
-  >> spawn "do-every 10 xmobar-update-bluetooth-status"
 
 ------------------------------------------------------------------------
 -- Config
@@ -491,25 +489,6 @@ xmobarTemplate "eurus" =
                  , " %date% "
                  , "\'"
                  ]
-xmobarTemplate "notus" =
-  xmobarCommands [ xmobarStdin
-                 , xmobarLoad 4 "load" 100
-                 , xmobarMemory 100
-                 , xmobarNetwork "enp0s25" "wls3" "network" 600
-                 , xmobarPipe xmobarPipeAudio "audio"
-                 , xmobarBattery 600
-                 , xmobarDate 10
-                 ]
-  ++ List.concat [ " -t \'%StdinReader%}{ " , xmobarSep
-                 , " %load% ", xmobarSep
-                 , " %memory% ", xmobarSep
-                 , " %network% ", xmobarSep
-                 , " %audio% ", xmobarSep
-                 , " %battery% ", xmobarSep
-                 , " %date% "
-                 , "\'"
-                 ]
-
 xmobarTemplate _ = ""
 
 xmobarParameters :: String -> String
@@ -524,9 +503,6 @@ main = do
   hostnm <- getHostName
   let shortHostnm = takeWhile (/= '.') hostnm
   xmobar <- spawnPipe ("xmobar" ++ xmobarParameters shortHostnm)
-  _ <- spawn "xmobar-update-audio-status"
-  _ <- spawn "xmobar-update-bluetooth-status"
-
   xmonad $ docks $ def
     { terminal           = myTerminal
     , focusFollowsMouse  = myFocusFollowsMouse

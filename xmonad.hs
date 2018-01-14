@@ -156,6 +156,10 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   , ((modm .|. shiftMask, xK_s     ), nextMatchOrDoForwardTitleContains "safe-secure.kdb" "keepassx-safe-secure")
 
+  , ((modm ,              xK_e     ), nextMatchOrDoForwardClass "Code" "code")
+
+  , ((modm .|. shiftMask, xK_e     ), spawn "code")
+
   , ((modm ,              xK_r     ), nextMatchOrDoForwardClass "jetbrains-idea-ce" "idea")
 
   , ((modm .|. shiftMask, xK_r     ), spawn "idea")

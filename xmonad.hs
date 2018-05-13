@@ -1,7 +1,7 @@
 import qualified Data.List as List (concat, intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, Map)
 
-import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp)
+import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_Display, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp)
 
 import Network.HostName (getHostName)
 
@@ -177,6 +177,8 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   , ((modm , xF86XK_AudioLowerVolume ), spawn "pa-mic-down")
 
   , ((0 ,  xF86XK_AudioMicMute     ), spawn "pa-mic-mute")
+
+  , ((0 ,  xF86XK_Display          ), spawn "cycle")
 
   , ((0 ,  xK_Print                ), spawn "screenshot")
 

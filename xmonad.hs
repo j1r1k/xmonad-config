@@ -166,9 +166,13 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   , ((modm ,              xK_v     ), nextMatchOrDoForwardClass "Vlc" "nlvlc")
 
-  , ((0 ,  xF86XK_AudioRaiseVolume ), spawn "pa-volume-up")
+  , ((0 ,  xF86XK_AudioRaiseVolume ), spawn "pa-volume-up 5")
 
-  , ((0 ,  xF86XK_AudioLowerVolume ), spawn "pa-volume-down")
+  , ((shiftMask ,  xF86XK_AudioRaiseVolume ), spawn "pa-volume-up 1")
+
+  , ((0 ,  xF86XK_AudioLowerVolume ), spawn "pa-volume-down 5")
+
+  , ((shiftMask ,  xF86XK_AudioLowerVolume ), spawn "pa-volume-down 1")
 
   , ((0 ,  xF86XK_AudioMute        ), spawn "pa-volume-mute")
 

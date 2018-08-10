@@ -10,7 +10,7 @@ import System.IO (hPutStrLn)
 
 import Text.Printf (printf)
 
-import XMonad 
+import XMonad
 import XMonad.Actions.CycleWS (doTo, moveTo, nextScreen, shiftNextScreen, WSType(EmptyWS))
 import XMonad.Actions.GroupNavigation (historyHook, nextMatch, nextMatchOrDo, Direction(Backward, Forward, History))
 import XMonad.Actions.UpdatePointer (updatePointer)
@@ -74,13 +74,6 @@ myXmobarColorRed = "#ff8278"
 myXmobarColorGrn :: String
 myXmobarColorGrn = "#d6fcba"
 
-xmobarPipeAudio :: FilePath
-xmobarPipeAudio = "/home/jirik/.xmonad/xmobar-pipe-audio"
-
-xmobarPipeBluetooth :: FilePath
-xmobarPipeBluetooth = "/home/jirik/.xmonad/xmobar-pipe-bluetooth"
-
-
 myFocusFollowsMouse :: Bool
 myFocusFollowsMouse = True
 
@@ -92,6 +85,12 @@ myModMask = mod4Mask
 
 myWorkspaces :: [String]
 myWorkspaces = ["1","2","3","4","5","6","7","8","9","0","A","B"]
+
+xmobarPipeAudio :: FilePath
+xmobarPipeAudio = "/home/jirik/.xmonad/xmobar-pipe-audio"
+
+xmobarPipeBluetooth :: FilePath
+xmobarPipeBluetooth = "/home/jirik/.xmonad/xmobar-pipe-bluetooth"
 
 -----------------------------------------------------------------------
 -- Helpers
@@ -343,7 +342,7 @@ myEventHook = mempty <+> docksEventHook <+> fullscreenEventHook
 -- Status bars and logging
 ------------------------------------------------------------------------
 
-myLogHook xmobar = 
+myLogHook xmobar =
   dynamicLogWithPP (def
     { ppOutput = hPutStrLn xmobar
     , ppTitle = xmobarColor myXmobarFgColor "" . shorten 110
@@ -464,24 +463,6 @@ xmobarSep :: String
 xmobarSep = "<fc=" ++ myXmobarHiColor ++ ">|</fc>"
 
 xmobarTemplate :: String -> String
-xmobarTemplate "eos" =
-  xmobarCommands [ xmobarStdin
-                 , xmobarLoad 4 "load" 100
-                 , xmobarMemory 100
-                 , xmobarNetwork "enp4s0" "" "network" 600
-                 , xmobarPipe xmobarPipeBluetooth "bluetooth"
-                 , xmobarPipe xmobarPipeAudio "audio"
-                 , xmobarDate 10
-                 ]
-  ++ List.concat [ " -t \'%StdinReader%}{ " , xmobarSep
-                 , " %load% ", xmobarSep
-                 , " %memory% ", xmobarSep
-                 , " %network% ", xmobarSep
-                 , " %bluetooth% ", xmobarSep
-                 , " %audio% ", xmobarSep
-                 , " %date% "
-                 , "\'"
-                 ]
 xmobarTemplate "eurus" =
   xmobarCommands [ xmobarStdin
                  , xmobarLoad 4 "load" 100

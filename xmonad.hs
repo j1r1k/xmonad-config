@@ -110,17 +110,20 @@ constantToFile a file = spawn $ printf "echo \"%s\" > \"%s\"" (show a) file
 xF86XK_AudioMicMute ::KeySym
 xF86XK_AudioMicMute = 0x1008ffb2
 
-nextMatchOrDoForward :: Query Bool -> String -> X ()
-nextMatchOrDoForward p s = nextMatchOrDo Forward p (spawn s)
+nextMatchClass :: String -> X ()
+nextMatchClass c = nextMatch Forward (className =? c)
 
-nextMatchOrDoForwardClass :: String -> String -> X ()
-nextMatchOrDoForwardClass c = nextMatchOrDoForward (className =? c)
+nextMatchOrSpawn :: Query Bool -> String -> X ()
+nextMatchOrSpawn p s = nextMatchOrDo Forward p (spawn s)
+
+nextMatchClassOrSpawn :: String -> String -> X ()
+nextMatchClassOrSpawn c = nextMatchOrSpawn (className =? c)
 
 contains :: (Functor f, Eq a) => f [a] -> [a] -> f Bool
 contains q x = fmap (List.isInfixOf x) q
 
-nextMatchOrDoForwardTitleContains :: String -> String -> X ()
-nextMatchOrDoForwardTitleContains t = nextMatchOrDoForward (title `contains` t)
+nextMatchTitleContainsOrSpawn :: String -> String -> X ()
+nextMatchTitleContainsOrSpawn t = nextMatchOrSpawn (title `contains` t)
 
 followTo :: Direction1D -> WSType -> X ()
 followTo dir t = doTo dir t getSortByIndex (\w -> windows (StackSet.shift w) >> windows (StackSet.greedyView w))
@@ -132,23 +135,23 @@ followTo dir t = doTo dir t getSortByIndex (\w -> windows (StackSet.shift w) >> 
 myKeys :: XConfig Layout -> Map.Map (KeyMask, KeySym) (X ())
 myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
-  [ ((modm ,              xK_x     ), nextMatchOrDoForwardClass myTerminalClass myTerminal)
+  [ ((modm ,              xK_x     ), nextMatchClassOrSpawn myTerminalClass myTerminal)
 
   , ((modm .|. shiftMask, xK_x     ), spawn myTerminal)
 
-  , ((modm ,              xK_f     ), nextMatchOrDoForwardClass "Firefox" "firefox")
+  , ((modm ,              xK_f     ), nextMatchClassOrSpawn "Firefox" "firefox")
 
   , ((modm .|. shiftMask, xK_f     ), spawn "firefox")
 
-  , ((modm ,              xK_c     ), nextMatchOrDoForwardClass "Google-chrome" "google-chrome")
+  , ((modm ,              xK_c     ), nextMatchClassOrSpawn "Google-chrome" "google-chrome")
 
   , ((modm .|. shiftMask, xK_c     ), spawn "google-chrome")
 
-  , ((modm ,              xK_g     ), nextMatchOrDoForwardClass "Thunderbird" "thunderbird")
+  , ((modm ,              xK_g     ), nextMatchClassOrSpawn "Thunderbird" "thunderbird")
 
   , ((modm ,              xK_z     ), shellPrompt myXPConfig)
 
-  , ((modm ,              xK_a     ), nextMatchOrDoForwardClass "Pcmanfm" "pcmanfm")
+  , ((modm ,              xK_a     ), nextMatchClassOrSpawn "Pcmanfm" "pcmanfm")
 
   , ((modm .|. shiftMask, xK_a     ), spawn "pcmanfm")
 
@@ -156,19 +159,19 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   , ((modm .|. shiftMask, xK_Escape), spawn "suspend-now")
 
-  , ((modm ,              xK_s     ), nextMatchOrDoForwardTitleContains "safe.kdb" "keepassx-safe")
+  , ((modm ,              xK_s     ), nextMatchTitleContainsOrSpawn "safe.kdb" "keepassx-safe")
 
-  , ((modm .|. shiftMask, xK_s     ), nextMatchOrDoForwardTitleContains "safe-secure.kdb" "keepassx-safe-secure")
+  , ((modm .|. shiftMask, xK_s     ), nextMatchTitleContainsOrSpawn "safe-secure.kdb" "keepassx-safe-secure")
 
-  , ((modm ,              xK_e     ), nextMatchOrDoForwardClass "Code" "code")
+  , ((modm ,              xK_e     ), nextMatchClass "Code")
 
   , ((modm .|. shiftMask, xK_e     ), spawn "code")
 
-  , ((modm ,              xK_r     ), nextMatchOrDoForwardClass "jetbrains-idea-ce" "idea")
+  , ((modm ,              xK_r     ), nextMatchClass "jetbrains-idea-ce")
 
   , ((modm .|. shiftMask, xK_r     ), spawn "idea")
 
-  , ((modm ,              xK_v     ), nextMatchOrDoForwardClass "Vlc" "nlvlc")
+  , ((modm ,              xK_v     ), nextMatchClassOrSpawn "Vlc" "nlvlc")
 
   , ((0 ,  xF86XK_AudioRaiseVolume ), spawn "pa-volume-up 5")
 

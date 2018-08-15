@@ -142,7 +142,7 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   , ((modm .|. shiftMask, xK_f     ), spawn "firefox")
 
-  , ((modm ,              xK_c     ), nextMatchClassOrSpawn "Google-chrome" "google-chrome")
+  , ((modm ,              xK_c     ), nextMatchClass "Google-chrome")
 
   , ((modm .|. shiftMask, xK_c     ), spawn "google-chrome")
 

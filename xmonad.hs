@@ -170,7 +170,7 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
 
   , ((modm .|. shiftMask, xK_r     ), spawn "idea")
 
-  , ((modm ,              xK_v     ), nextMatchClassOrSpawn "Vlc" "nlvlc")
+  , ((modm ,              xK_v     ), nextMatchClassOrSpawn "vlc" "nlvlc")
 
   , ((0 ,  xF86XK_AudioRaiseVolume ), spawn "pa-volume-up 5")
 

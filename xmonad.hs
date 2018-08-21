@@ -18,7 +18,7 @@ import XMonad.Actions.UpdatePointer (updatePointer)
 import XMonad.Hooks.DynamicLog (dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup, fullscreenEventHook)
 import XMonad.Hooks.ManageDocks (avoidStruts, docks, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
-import XMonad.Hooks.ManageHelpers (doCenterFloat, isDialog)
+import XMonad.Hooks.ManageHelpers (doRectFloat, isDialog)
 import XMonad.Hooks.SetWMName (setWMName)
 
 import XMonad.Layout.Grid (Grid(Grid))
@@ -26,7 +26,7 @@ import XMonad.Layout.NoBorders (noBorders, smartBorders)
 
 import XMonad.Prompt (deleteConsecutive, Direction1D(Next), XPPosition(..), XPConfig(..))
 import XMonad.Prompt.Shell (shellPrompt)
-import qualified XMonad.StackSet as StackSet (focusDown, focusMaster, focusUp, greedyView, shift, shiftMaster, sink, swapDown, swapMaster, swapUp)
+import qualified XMonad.StackSet as StackSet (RationalRect(..), focusDown, focusMaster, focusUp, greedyView, shift, shiftMaster, sink, swapDown, swapMaster, swapUp)
 
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
@@ -329,7 +329,7 @@ myLayout = avoidStruts layout
 
 myManageHook :: ManageHook
 myManageHook = manageDocks <+> composeAll
-  [ isDialog --> doCenterFloat
+  [ isDialog --> doRectFloat (StackSet.RationalRect 0.2 0.2 0.6 0.6)
   ]
 
 ------------------------------------------------------------------------

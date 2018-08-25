@@ -1,5 +1,8 @@
+import GHC.IO.Handle.Types (Handle)
+
 import qualified Data.List as List (concat, intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, Map)
+import qualified Data.Monoid as Monoid (All(..))
 
 import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_Display, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp)
 
@@ -17,12 +20,13 @@ import XMonad.Actions.UpdatePointer (updatePointer)
 
 import XMonad.Hooks.DynamicLog (dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup, fullscreenEventHook)
-import XMonad.Hooks.ManageDocks (avoidStruts, docks, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
+import XMonad.Hooks.ManageDocks (AvoidStruts, avoidStruts, docks, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
 import XMonad.Hooks.ManageHelpers (doFloatDep, isDialog)
 import XMonad.Hooks.SetWMName (setWMName)
 
 import XMonad.Layout.Grid (Grid(Grid))
-import XMonad.Layout.NoBorders (noBorders, smartBorders)
+import XMonad.Layout.LayoutModifier (ModifiedLayout)
+import XMonad.Layout.NoBorders (SmartBorder, WithBorder, noBorders, smartBorders)
 
 import XMonad.Prompt (deleteConsecutive, Direction1D(Next), XPPosition(..), XPConfig(..))
 import XMonad.Prompt.Shell (shellPrompt)
@@ -314,6 +318,11 @@ myMouseBindings XConfig {XMonad.modMask = modm} = Map.fromList
 -- Layouts:
 ------------------------------------------------------------------------
 
+myLayout :: ModifiedLayout AvoidStruts
+                (Choose (ModifiedLayout SmartBorder Tall)
+                        (Choose (ModifiedLayout SmartBorder (Mirror Tall))
+                                (Choose (ModifiedLayout WithBorder Full)
+                                        (ModifiedLayout SmartBorder Grid)))) Window
 myLayout = avoidStruts layout
   where
     layout  = smartBorders tiled
@@ -354,12 +363,14 @@ myManageHook = manageDocks <+> composeAll
 -- Event handling
 ------------------------------------------------------------------------
 
+myEventHook :: Event -> X Monoid.All
 myEventHook = mempty <+> docksEventHook <+> fullscreenEventHook
 
 ------------------------------------------------------------------------
 -- Status bars and logging
 ------------------------------------------------------------------------
 
+myLogHook :: Handle -> X ()
 myLogHook xmobar =
   dynamicLogWithPP (def
     { ppOutput = hPutStrLn xmobar

@@ -3,10 +3,10 @@ import qualified Data.Map as Map (fromList, Map)
 
 import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_Display, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp)
 
-import Network.HostName (getHostName)
-
 import System.Exit ()
+import System.FilePath.Posix ((</>))
 import System.IO (hPutStrLn)
+import System.ReadEnvVar (lookupEnvEx)
 
 import Text.Printf (printf)
 
@@ -18,7 +18,7 @@ import XMonad.Actions.UpdatePointer (updatePointer)
 import XMonad.Hooks.DynamicLog (dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup, fullscreenEventHook)
 import XMonad.Hooks.ManageDocks (avoidStruts, docks, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
-import XMonad.Hooks.ManageHelpers (doRectFloat, isDialog)
+import XMonad.Hooks.ManageHelpers (doFloatDep, isDialog)
 import XMonad.Hooks.SetWMName (setWMName)
 
 import XMonad.Layout.Grid (Grid(Grid))
@@ -26,10 +26,15 @@ import XMonad.Layout.NoBorders (noBorders, smartBorders)
 
 import XMonad.Prompt (deleteConsecutive, Direction1D(Next), XPPosition(..), XPConfig(..))
 import XMonad.Prompt.Shell (shellPrompt)
-import qualified XMonad.StackSet as StackSet (RationalRect(..), focusDown, focusMaster, focusUp, greedyView, shift, shiftMaster, sink, swapDown, swapMaster, swapUp)
+import XMonad.StackSet (RationalRect(..))
+import qualified XMonad.StackSet as StackSet (focusDown, focusMaster, focusUp, greedyView, shift, shiftMaster, sink, swapDown, swapMaster, swapUp)
 
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
+
+type Hostname = String
+type Home = FilePath
+type XmonadHome = FilePath
 
 -----------------------------------------------------------------------
 -- Customizations
@@ -86,11 +91,14 @@ myModMask = mod4Mask
 myWorkspaces :: [String]
 myWorkspaces = ["1","2","3","4","5","6","7","8","9","0","A","B"]
 
-xmobarPipeAudio :: FilePath
-xmobarPipeAudio = "/home/jirik/.xmonad/xmobar-pipe-audio"
+xmonadHome :: Home -> XmonadHome
+xmonadHome home = home </> ".xmonad"
 
-xmobarPipeBluetooth :: FilePath
-xmobarPipeBluetooth = "/home/jirik/.xmonad/xmobar-pipe-bluetooth"
+xmobarPipeAudio :: XmonadHome -> FilePath
+xmobarPipeAudio xHome = xHome </> "xmobar-pipe-audio"
+
+xmobarPipeBluetooth :: XmonadHome -> FilePath
+xmobarPipeBluetooth xHome = xHome </> "xmobar-pipe-bluetooth"
 
 -----------------------------------------------------------------------
 -- Helpers
@@ -327,9 +335,19 @@ myLayout = avoidStruts layout
 -- Window rules:
 ------------------------------------------------------------------------
 
+fitRectSizeIn :: (Fractional n, Ord n) => n -> n -> (n, n)
+fitRectSizeIn limit size = let n = min limit size in ((1 - n) / 2, n)
+
+computeDialogRect :: RationalRect -> RationalRect
+computeDialogRect (RationalRect _ _ w h) = 
+    let limit = 0.6
+        (x', w') = fitRectSizeIn limit w
+        (y', h') = fitRectSizeIn limit h
+     in RationalRect x' y' w' h'
+
 myManageHook :: ManageHook
 myManageHook = manageDocks <+> composeAll
-  [ isDialog --> doRectFloat (StackSet.RationalRect 0.2 0.2 0.6 0.6)
+  [ isDialog --> doFloatDep computeDialogRect
   ]
 
 ------------------------------------------------------------------------
@@ -363,14 +381,14 @@ myLogHook xmobar =
 -- Startup hook
 ------------------------------------------------------------------------
 
-myStartupHook :: X ()
-myStartupHook =
+myStartupHook :: XmonadHome -> X ()
+myStartupHook xHome =
      ewmhDesktopsStartup
   >> setWMName "LG3D"
-  >> constantToFile myXmobarColorGrn "${HOME}/.xmonad/xmobar-color-grn"
-  >> constantToFile myXmobarColorRed "${HOME}/.xmonad/xmobar-color-red"
-  >> createPipe xmobarPipeAudio
-  >> createPipe xmobarPipeBluetooth
+  >> constantToFile myXmobarColorGrn (xHome </> "xmobar-color-grn")
+  >> constantToFile myXmobarColorRed (xHome </> "xmobar-color-red")
+  >> createPipe (xmobarPipeAudio xHome)
+  >> createPipe (xmobarPipeBluetooth xHome)
 
 ------------------------------------------------------------------------
 -- Config
@@ -462,14 +480,14 @@ xmobarPipe f a = "Run PipeReader \"" ++ f ++ "\" \"" ++ a ++ "\""
 xmobarSep :: String
 xmobarSep = "<fc=" ++ myXmobarHiColor ++ ">|</fc>"
 
-xmobarTemplate :: String -> String
-xmobarTemplate "eurus" =
+xmobarTemplate :: Home -> Hostname -> String
+xmobarTemplate home "eurus" =
   xmobarCommands [ xmobarStdin
                  , xmobarLoad 4 "load" 100
                  , xmobarMemory 100
                  , xmobarNetwork "enp0s25" "wlp3s0" "network" 600
-                 , xmobarPipe xmobarPipeBluetooth "bluetooth"
-                 , xmobarPipe xmobarPipeAudio "audio"
+                 , xmobarPipe (xmobarPipeBluetooth home) "bluetooth"
+                 , xmobarPipe (xmobarPipeAudio home) "audio"
                  , xmobarBattery 600
                  , xmobarDate 10
                  ]
@@ -483,20 +501,28 @@ xmobarTemplate "eurus" =
                  , " %date% "
                  , "\'"
                  ]
-xmobarTemplate _ = ""
+xmobarTemplate _ _ = ""
 
-xmobarParameters :: String -> String
-xmobarParameters h = xmobarLook ++ xmobarTemplate h
+xmobarParameters :: XmonadHome -> Hostname -> String
+xmobarParameters xHome hostname = xmobarLook ++ xmobarTemplate xHome hostname
 
 ------------------------------------------------------------------------
 -- Main
 ------------------------------------------------------------------------
 
+getHostName :: IO Hostname
+getHostName = lookupEnvEx "HOSTNAME"
+
+getHome :: IO Home
+getHome = lookupEnvEx "HOME"
+
 main :: IO ()
 main = do
-  hostnm <- getHostName
-  let shortHostnm = takeWhile (/= '.') hostnm
-  xmobar <- spawnPipe ("xmobar" ++ xmobarParameters shortHostnm)
+  hostname <- getHostName
+  let shortHostname = takeWhile (/= '.') hostname
+  home <- getHome
+  let xHome = xmonadHome home
+  xmobar <- spawnPipe ("xmobar" ++ xmobarParameters xHome shortHostname)
   xmonad $ docks $ def
     { terminal           = myTerminal
     , focusFollowsMouse  = myFocusFollowsMouse
@@ -513,5 +539,5 @@ main = do
     , manageHook         = myManageHook
     , handleEventHook    = myEventHook
     , logHook            = myLogHook xmobar
-    , startupHook        = myStartupHook
+    , startupHook        = myStartupHook xHome
     }

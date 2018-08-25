@@ -19,7 +19,8 @@ executable xmonad
   build-depends:       base
                      , containers
                      , data-default
-                     , hostname
+                     , filepath
+                     , read-env-var
                      , xmonad >= 0.13
                      , xmonad-contrib >= 0.13
                      , X11

@@ -357,6 +357,7 @@ computeDialogRect (RationalRect _ _ w h) =
 myManageHook :: ManageHook
 myManageHook = manageDocks <+> composeAll
   [ isDialog --> doFloatDep computeDialogRect
+  , className =? "Peek" --> doFloatDep computeDialogRect
   ]
 
 ------------------------------------------------------------------------

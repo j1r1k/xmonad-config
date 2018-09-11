@@ -4,7 +4,7 @@ import qualified Data.List as List (concat, intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, Map)
 import qualified Data.Monoid as Monoid (All(..))
 
-import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_Display, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp)
+import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_Display, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp, xF86XK_LaunchA)
 
 import System.Exit ()
 import System.FilePath.Posix ((</>))
@@ -140,154 +140,141 @@ followTo :: Direction1D -> WSType -> X ()
 followTo dir t = doTo dir t getSortByIndex (\w -> windows (StackSet.shift w) >> windows (StackSet.greedyView w))
 
 ------------------------------------------------------------------------
--- Key bindings. Add, modify or remove key bindings here.
+-- Key bindings
 ------------------------------------------------------------------------
 
 myKeys :: XConfig Layout -> Map.Map (KeyMask, KeySym) (X ())
 myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
+  [ ((modm ,              xK_x             ), nextMatchClassOrSpawn myTerminalClass myTerminal)
+  , ((modm .|. shiftMask, xK_x             ), spawn myTerminal)
 
-  [ ((modm ,              xK_x     ), nextMatchClassOrSpawn myTerminalClass myTerminal)
+  , ((modm ,              xK_f             ), nextMatchClassOrSpawn "Firefox" "firefox")
+  , ((modm .|. shiftMask, xK_f             ), spawn "firefox")
 
-  , ((modm .|. shiftMask, xK_x     ), spawn myTerminal)
+  , ((modm ,              xK_c             ), nextMatchClass "Google-chrome")
+  , ((modm .|. shiftMask, xK_c             ), spawn "google-chrome")
 
-  , ((modm ,              xK_f     ), nextMatchClassOrSpawn "Firefox" "firefox")
+  , ((modm ,              xK_g             ), nextMatchClassOrSpawn "Thunderbird" "thunderbird")
 
-  , ((modm .|. shiftMask, xK_f     ), spawn "firefox")
+  , ((modm ,              xK_a             ), nextMatchClassOrSpawn "Pcmanfm" "pcmanfm")
+  , ((modm .|. shiftMask, xK_a             ), spawn "pcmanfm")
 
-  , ((modm ,              xK_c     ), nextMatchClass "Google-chrome")
+  , ((modm ,              xK_s             ), nextMatchTitleContainsOrSpawn "safe.kdb" "keepassx-safe")
+  , ((modm .|. shiftMask, xK_s             ), nextMatchTitleContainsOrSpawn "safe-secure.kdb" "keepassx-safe-secure")
 
-  , ((modm .|. shiftMask, xK_c     ), spawn "google-chrome")
+  , ((modm ,              xK_e             ), nextMatchClass "Code")
+  , ((modm .|. shiftMask, xK_e             ), spawn "code")
 
-  , ((modm ,              xK_g     ), nextMatchClassOrSpawn "Thunderbird" "thunderbird")
+  , ((modm ,              xK_r             ), nextMatchClass "jetbrains-idea-ce")
+  , ((modm .|. shiftMask, xK_r             ), spawn "idea")
 
-  , ((modm ,              xK_z     ), shellPrompt myXPConfig)
+  , ((modm ,              xK_v             ), nextMatchClassOrSpawn "vlc" "nlvlc")
 
-  , ((modm ,              xK_a     ), nextMatchClassOrSpawn "Pcmanfm" "pcmanfm")
+  -- lock & suspend
+  , ((modm ,              xK_Escape        ), spawn "lock-now")
+  , ((modm .|. shiftMask, xK_Escape        ), spawn "suspend-now")
 
-  , ((modm .|. shiftMask, xK_a     ), spawn "pcmanfm")
-
-  , ((modm ,              xK_Escape), spawn "lock-now")
-
-  , ((modm .|. shiftMask, xK_Escape), spawn "suspend-now")
-
-  , ((modm ,              xK_s     ), nextMatchTitleContainsOrSpawn "safe.kdb" "keepassx-safe")
-
-  , ((modm .|. shiftMask, xK_s     ), nextMatchTitleContainsOrSpawn "safe-secure.kdb" "keepassx-safe-secure")
-
-  , ((modm ,              xK_e     ), nextMatchClass "Code")
-
-  , ((modm .|. shiftMask, xK_e     ), spawn "code")
-
-  , ((modm ,              xK_r     ), nextMatchClass "jetbrains-idea-ce")
-
-  , ((modm .|. shiftMask, xK_r     ), spawn "idea")
-
-  , ((modm ,              xK_v     ), nextMatchClassOrSpawn "vlc" "nlvlc")
-
-  , ((0 ,  xF86XK_AudioRaiseVolume ), spawn "pa-volume-up 5")
-
+  -- volume control
+  , ((0 ,  xF86XK_AudioRaiseVolume         ), spawn "pa-volume-up 5")
   , ((shiftMask ,  xF86XK_AudioRaiseVolume ), spawn "pa-volume-up 1")
-
-  , ((0 ,  xF86XK_AudioLowerVolume ), spawn "pa-volume-down 5")
-
+  , ((0 ,  xF86XK_AudioLowerVolume         ), spawn "pa-volume-down 5")
   , ((shiftMask ,  xF86XK_AudioLowerVolume ), spawn "pa-volume-down 1")
+  , ((0 ,  xF86XK_AudioMute                ), spawn "pa-volume-mute")
 
-  , ((0 ,  xF86XK_AudioMute        ), spawn "pa-volume-mute")
+  -- mic volume control
+  , ((modm , xF86XK_AudioRaiseVolume       ), spawn "pa-mic-up")
+  , ((modm , xF86XK_AudioLowerVolume       ), spawn "pa-mic-down")
+  , ((0 ,  xF86XK_AudioMicMute             ), spawn "pa-mic-mute")
 
-  , ((modm , xF86XK_AudioRaiseVolume ), spawn "pa-mic-up")
+  , ((0 ,  xF86XK_Display                  ), spawn "cycle")
+  , ((0 ,  xF86XK_LaunchA                  ), spawn "cycle")
 
-  , ((modm , xF86XK_AudioLowerVolume ), spawn "pa-mic-down")
+  -- screenshots
+  , ((0 ,  xK_Print                        ), spawn "screenshot")
+  , ((modm , xK_BackSpace                  ), spawn "screenshot")
+  , ((modm .|. shiftMask , xK_BackSpace    ), spawn "screenshot-select")
 
-  , ((0 ,  xF86XK_AudioMicMute     ), spawn "pa-mic-mute")
+  -- backlight controls
+  , ((0 , xF86XK_MonBrightnessDown         ), spawn ("xbacklight -" ++ myBrightnessStep ))
+  , ((0 , xF86XK_MonBrightnessUp           ), spawn ("xbacklight +" ++ myBrightnessStep ))
+  , ((shiftMask, xF86XK_MonBrightnessDown  ), spawn ("xbacklight -set " ++ myBrightnessDefaultLow ))
+  , ((shiftMask, xF86XK_MonBrightnessUp    ), spawn ("xbacklight -set " ++ myBrightnessDefaultHigh ))
 
-  , ((0 ,  xF86XK_Display          ), spawn "cycle")
-
-  , ((0 ,  xK_Print                ), spawn "screenshot")
-
-  , ((modm ,               xK_BackSpace ), spawn "screenshot")
-
-  , ((modm .|. shiftMask , xK_BackSpace ), spawn "screenshot-select")
-
-  , ((0 , xF86XK_MonBrightnessDown ), spawn ("xbacklight -" ++ myBrightnessStep ))
-
-  , ((0 , xF86XK_MonBrightnessUp   ), spawn ("xbacklight +" ++ myBrightnessStep ))
-
-  , ((shiftMask, xF86XK_MonBrightnessDown ), spawn ("xbacklight -set " ++ myBrightnessDefaultLow ))
-
-  , ((shiftMask, xF86XK_MonBrightnessUp   ), spawn ("xbacklight -set " ++ myBrightnessDefaultHigh ))
+  -- show prompt
+  , ((modm ,              xK_z             ), shellPrompt myXPConfig)
 
   -- close focused window
-  , ((modm ,              xK_q     ), kill)
-  , ((modm .|. shiftMask, xK_q     ), kill)
+  , ((modm ,              xK_q             ), kill)
+  , ((modm .|. shiftMask, xK_q             ), kill)
 
-   -- Rotate through the available layout algorithms
-  , ((modm ,              xK_space ), sendMessage NextLayout)
+  -- rotate through the available layout algorithms
+  , ((modm ,              xK_space         ), sendMessage NextLayout)
 
-  --  Reset the layouts on the current workspace to default
-  , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
+  -- reset the layouts on the current workspace to default
+  , ((modm .|. shiftMask, xK_space         ), setLayout $ XMonad.layoutHook conf)
 
-  -- Resize viewed windows to the correct size
-  , ((modm ,              xK_n     ), refresh)
+  -- resize viewed windows to the correct size
+  , ((modm ,              xK_n             ), refresh)
 
-  -- Cycle Screens
-  , ((modm ,              xK_w     ), nextScreen)
+  -- cycle Screens
+  , ((modm ,              xK_w             ), nextScreen)
 
-  -- Move to next Screen
-  , ((modm .|. shiftMask, xK_w     ), shiftNextScreen)
+  -- move to next Screen
+  , ((modm .|. shiftMask, xK_w             ), shiftNextScreen)
 
-  -- Move focus to the next window
-  , ((modm ,              xK_o     ), windows StackSet.focusDown)
+  -- move focus to the next window
+  , ((modm ,              xK_o             ), windows StackSet.focusDown)
 
-  -- Move focus to the previous window
-  , ((modm ,              xK_p     ), windows StackSet.focusUp  )
+  -- move focus to the previous window
+  , ((modm ,              xK_p             ), windows StackSet.focusUp  )
 
-  -- Move focus to the master window
-  , ((modm ,              xK_m     ), windows StackSet.focusMaster  )
+  -- move focus to the master window
+  , ((modm ,              xK_m             ), windows StackSet.focusMaster  )
 
-  -- Swap the focused window and the master window
-  , ((modm ,              xK_Return), windows StackSet.swapMaster)
+  -- swap the focused window and the master window
+  , ((modm ,              xK_Return        ), windows StackSet.swapMaster)
 
-  -- Swap the focused window with the next window
-  , ((modm .|. shiftMask, xK_o     ), windows StackSet.swapDown  )
+  -- swap the focused window with the next window
+  , ((modm .|. shiftMask, xK_o             ), windows StackSet.swapDown  )
 
-  -- Swap the focused window with the previous window
-  , ((modm .|. shiftMask, xK_p     ), windows StackSet.swapUp    )
+  -- swap the focused window with the previous window
+  , ((modm .|. shiftMask, xK_p             ), windows StackSet.swapUp    )
 
-  -- Shrink the master area
-  , ((modm ,              xK_h     ), sendMessage Shrink)
+  -- shrink the master area
+  , ((modm ,              xK_h             ), sendMessage Shrink)
 
-  -- Expand the master area
-  , ((modm ,              xK_l     ), sendMessage Expand)
+  -- expand the master area
+  , ((modm ,              xK_l             ), sendMessage Expand)
 
-  -- Push window back into tiling
-  , ((modm ,              xK_t     ), withFocused $ windows . StackSet.sink)
+  -- push window back into tiling
+  , ((modm ,              xK_t             ), withFocused $ windows . StackSet.sink)
 
-  -- Increment the number of windows in the master area
-  , ((modm              , xK_period), sendMessage (IncMasterN 1))
+  -- increment the number of windows in the master area
+  , ((modm              , xK_period        ), sendMessage $ IncMasterN 1)
 
-  -- Deincrement the number of windows in the master area
-  , ((modm              , xK_comma ), sendMessage (IncMasterN (-1)))
+  -- deincrement the number of windows in the master area
+  , ((modm              , xK_comma         ), sendMessage $ IncMasterN (-1))
 
-  -- Toggle the status bar gap
-  , ((modm              , xK_b     ), sendMessage ToggleStruts)
+  -- toggle the status bar gap
+  , ((modm              , xK_b             ), sendMessage ToggleStruts)
 
-  -- Go to empty workspace
-  , ((modm              , xK_grave ), moveTo Next EmptyWS)
+  -- go to empty workspace
+  , ((modm              , xK_grave         ), moveTo Next EmptyWS)
 
-  -- Shift window to empty workspace
-  , ((modm .|. shiftMask, xK_grave ), followTo Next EmptyWS)
+  -- shift window to empty workspace
+  , ((modm .|. shiftMask, xK_grave         ), followTo Next EmptyWS)
 
-  -- Focus previous window
-  , ((modm              , xK_Right ), nextMatch Forward (return True))
+  -- focus previous window
+  , ((modm              , xK_Right         ), nextMatch Forward (return True))
 
-  -- Focus next window
-  , ((modm              , xK_Left  ), nextMatch Backward (return True))
+  -- focus next window
+  , ((modm              , xK_Left          ), nextMatch Backward (return True))
 
-  -- Go to previous window
-  , ((modm              , xK_Tab   ), nextMatch History (return True))
+  -- go to previous window
+  , ((modm              , xK_Tab           ), nextMatch History (return True))
 
-  , ((shiftMask         , xK_Escape), spawn "xdotool key Caps_Lock")
-
+  -- caps lock remap
+  , ((shiftMask         , xK_Escape        ), spawn "xdotool key Caps_Lock")
   ]
   ++
   -- workspace switching
@@ -296,7 +283,7 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
     , (f, m) <- [(StackSet.greedyView, 0), (StackSet.shift, shiftMask)]]
 
 ------------------------------------------------------------------------
--- Mouse bindings: default actions bound to mouse events
+-- Mouse bindings
 ------------------------------------------------------------------------
 
 myMouseBindings :: XConfig t -> Map.Map (KeyMask, Button) (Window -> X ())
@@ -315,7 +302,7 @@ myMouseBindings XConfig {XMonad.modMask = modm} = Map.fromList
   ]
 
 ------------------------------------------------------------------------
--- Layouts:
+-- Layout
 ------------------------------------------------------------------------
 
 myLayout :: ModifiedLayout AvoidStruts
@@ -330,18 +317,15 @@ myLayout = avoidStruts layout
            ||| noBorders Full
            ||| smartBorders Grid
     tiled = Tall nmaster delta ratio
-
     -- The default number of windows in the master pane
     nmaster = 1
-
     -- Default proportion of screen occupied by master pane
     ratio   = 1/2
-
     -- Percent of screen to increment by when resizing panes
     delta   = 3/100
 
 ------------------------------------------------------------------------
--- Window rules:
+-- Manage hook
 ------------------------------------------------------------------------
 
 fitRectSizeIn :: (Fractional n, Ord n) => n -> n -> (n, n)
@@ -361,14 +345,14 @@ myManageHook = manageDocks <+> composeAll
   ]
 
 ------------------------------------------------------------------------
--- Event handling
+-- Event hook
 ------------------------------------------------------------------------
 
 myEventHook :: Event -> X Monoid.All
 myEventHook = mempty <+> docksEventHook <+> fullscreenEventHook
 
 ------------------------------------------------------------------------
--- Status bars and logging
+-- Log hook
 ------------------------------------------------------------------------
 
 myLogHook :: Handle -> X ()
@@ -403,7 +387,7 @@ myStartupHook xHome =
   >> createPipe (xmobarPipeBluetooth xHome)
 
 ------------------------------------------------------------------------
--- Config
+-- Prompt config
 ------------------------------------------------------------------------
 
 myXPConfig :: XPConfig
@@ -522,15 +506,15 @@ xmobarParameters xHome hostname = xmobarLook ++ xmobarTemplate xHome hostname
 -- Main
 ------------------------------------------------------------------------
 
-getHostName :: IO Hostname
-getHostName = lookupEnvEx "HOSTNAME"
+getHostname :: IO Hostname
+getHostname = lookupEnvEx "HOSTNAME"
 
 getHome :: IO Home
 getHome = lookupEnvEx "HOME"
 
 main :: IO ()
 main = do
-  hostname <- getHostName
+  hostname <- getHostname
   let shortHostname = takeWhile (/= '.') hostname
   home <- getHome
   let xHome = xmonadHome home

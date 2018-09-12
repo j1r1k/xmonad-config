@@ -427,8 +427,8 @@ xmobarStdin =
 xmobarCommand :: String -> [String] -> String -> Integer -> String
 xmobarCommand c p = printf "Run Com \"%s\" %s \"%s\" %d" c (xmobarComParameters p)
 
-xmobarLoad :: Integer -> String -> Integer -> String
-xmobarLoad c = xmobarCommand "xmobar-load-status" [ myXmobarColorRed, myXmobarColorGrn, show c ]
+xmobarLoad :: String -> Integer -> String
+xmobarLoad = xmobarCommand "xmobar-load-status" [ myXmobarColorRed, myXmobarColorGrn ]
 
 xmobarNetwork :: String -> String -> String -> Integer -> String
 xmobarNetwork lan wlan = xmobarCommand "xmobar-net-status" [ myXmobarColorRed, myXmobarColorGrn, lan, wlan ]
@@ -477,9 +477,9 @@ xmobarSep :: String
 xmobarSep = "<fc=" ++ myXmobarHiColor ++ ">|</fc>"
 
 xmobarTemplate :: Home -> Hostname -> String
-xmobarTemplate home "eurus" =
+xmobarTemplate home _ =
   xmobarCommands [ xmobarStdin
-                 , xmobarLoad 4 "load" 100
+                 , xmobarLoad "load" 100
                  , xmobarMemory 100
                  , xmobarNetwork "enp0s25" "wlp3s0" "network" 600
                  , xmobarPipe (xmobarPipeBluetooth home) "bluetooth"
@@ -497,7 +497,6 @@ xmobarTemplate home "eurus" =
                  , " %date% "
                  , "\'"
                  ]
-xmobarTemplate _ _ = ""
 
 xmobarParameters :: XmonadHome -> Hostname -> String
 xmobarParameters xHome hostname = xmobarLook ++ xmobarTemplate xHome hostname

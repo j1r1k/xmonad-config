@@ -57,7 +57,7 @@ myBrightnessDefaultLow :: String
 myBrightnessDefaultLow  = "15"
 
 myBrightnessDefaultHigh :: String
-myBrightnessDefaultHigh = "50"
+myBrightnessDefaultHigh = "80"
 
 myNormalBorderColor :: String
 myNormalBorderColor  = "#dcdccc"
@@ -143,8 +143,8 @@ followTo dir t = doTo dir t getSortByIndex (\w -> windows (StackSet.shift w) >> 
 -- Key bindings
 ------------------------------------------------------------------------
 
-myKeys :: XConfig Layout -> Map.Map (KeyMask, KeySym) (X ())
-myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
+myKeys :: Hostname -> XConfig Layout -> Map.Map (KeyMask, KeySym) (X ())
+myKeys hostname conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   [ ((modm ,              xK_x             ), nextMatchClassOrSpawn myTerminalClass myTerminal)
   , ((modm .|. shiftMask, xK_x             ), spawn myTerminal)
 
@@ -201,7 +201,7 @@ myKeys conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   , ((shiftMask, xF86XK_MonBrightnessUp    ), spawn ("xbacklight -set " ++ myBrightnessDefaultHigh ))
 
   -- show prompt
-  , ((modm ,              xK_z             ), shellPrompt myXPConfig)
+  , ((modm ,              xK_z             ), shellPrompt $ myXPConfig hostname)
 
   -- close focused window
   , ((modm ,              xK_q             ), kill)
@@ -390,8 +390,8 @@ myStartupHook xHome =
 -- Prompt config
 ------------------------------------------------------------------------
 
-myXPConfig :: XPConfig
-myXPConfig =
+myXPConfig :: Hostname -> XPConfig
+myXPConfig hostname =
   def { font              = myXFTFont
       , bgColor           = myXmobarBgColor
       , fgColor           = myXmobarFgColor
@@ -399,7 +399,9 @@ myXPConfig =
       , fgHLight          = myXmobarBgColor
       , borderColor       = myFocusedBorderColor
       , promptBorderWidth = 1
-      , height            = 16
+      , height            = case hostname of
+                                "notus" -> 24
+                                _       -> 16
       , position          = Bottom
       , historySize       = 100
       , historyFilter     = deleteConsecutive
@@ -527,7 +529,7 @@ main = do
     , normalBorderColor  = myNormalBorderColor
     , focusedBorderColor = myFocusedBorderColor
     -- key bindings
-    , keys               = myKeys
+    , keys               = myKeys shortHostname
     , mouseBindings      = myMouseBindings
     -- hooks, layouts
     , layoutHook         = myLayout

@@ -165,7 +165,7 @@ myKeys hostname conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   , ((modm ,              xK_e             ), nextMatchClass "Code")
   , ((modm .|. shiftMask, xK_e             ), spawn "code")
 
-  , ((modm ,              xK_r             ), nextMatchClass "jetbrains-idea-ce")
+  , ((modm ,              xK_r             ), nextMatchClass "jetbrains-idea")
   , ((modm .|. shiftMask, xK_r             ), spawn "idea")
 
   , ((modm ,              xK_v             ), nextMatchClassOrSpawn "vlc" "nlvlc")

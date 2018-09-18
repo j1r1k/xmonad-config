@@ -4,7 +4,7 @@ import qualified Data.List as List (concat, intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, Map)
 import qualified Data.Monoid as Monoid (All(..))
 
-import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_Display, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp, xF86XK_LaunchA)
+import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_Bluetooth, xF86XK_Display, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp, xF86XK_LaunchA)
 
 import System.Exit ()
 import System.FilePath.Posix ((</>))
@@ -199,6 +199,9 @@ myKeys hostname conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   , ((0 , xF86XK_MonBrightnessUp           ), spawn ("xbacklight +" ++ myBrightnessStep ))
   , ((shiftMask, xF86XK_MonBrightnessDown  ), spawn ("xbacklight -set " ++ myBrightnessDefaultLow ))
   , ((shiftMask, xF86XK_MonBrightnessUp    ), spawn ("xbacklight -set " ++ myBrightnessDefaultHigh ))
+
+  -- bluetooth
+  , ((0,  xF86XK_Bluetooth                 ), spawn "bt-toggle")
 
   -- show prompt
   , ((modm ,              xK_z             ), shellPrompt $ myXPConfig hostname)

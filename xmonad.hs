@@ -154,7 +154,8 @@ myKeys hostname conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   , ((modm ,              xK_c             ), nextMatchClass "Google-chrome")
   , ((modm .|. shiftMask, xK_c             ), spawn "google-chrome")
 
-  , ((modm ,              xK_g             ), nextMatchClassOrSpawn "Thunderbird" "thunderbird")
+  , ((modm ,              xK_g             ), nextMatchClass "Thunderbird")
+  , ((modm .|. shiftMask, xK_g             ), spawn "thunderbird")
 
   , ((modm ,              xK_a             ), nextMatchClassOrSpawn "Pcmanfm" "pcmanfm")
   , ((modm .|. shiftMask, xK_a             ), spawn "pcmanfm")

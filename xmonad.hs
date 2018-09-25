@@ -157,6 +157,9 @@ myKeys hostname conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   , ((modm ,              xK_g             ), nextMatchClass "Thunderbird")
   , ((modm .|. shiftMask, xK_g             ), spawn "thunderbird")
 
+  , ((modm ,              xK_d             ), nextMatchClass "Slack")
+  , ((modm .|. shiftMask, xK_d             ), spawn "slack")
+
   , ((modm ,              xK_a             ), nextMatchClassOrSpawn "Pcmanfm" "pcmanfm")
   , ((modm .|. shiftMask, xK_a             ), spawn "pcmanfm")
 

@@ -21,7 +21,7 @@ import XMonad.Actions.UpdatePointer (updatePointer)
 import XMonad.Hooks.DynamicLog (dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup, fullscreenEventHook)
 import XMonad.Hooks.ManageDocks (AvoidStruts, avoidStruts, docks, docksEventHook, manageDocks, ToggleStruts(ToggleStruts))
-import XMonad.Hooks.ManageHelpers (doFloatDep, isDialog)
+import XMonad.Hooks.ManageHelpers (doFloatDep, doFullFloat, isDialog, isFullscreen)
 import XMonad.Hooks.SetWMName (setWMName)
 
 import XMonad.Layout.Grid (Grid(Grid))
@@ -148,7 +148,7 @@ myKeys hostname conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   [ ((modm ,              xK_x             ), nextMatchClassOrSpawn myTerminalClass myTerminal)
   , ((modm .|. shiftMask, xK_x             ), spawn myTerminal)
 
-  , ((modm ,              xK_f             ), nextMatchClassOrSpawn "Firefox" "firefox")
+  , ((modm ,              xK_f             ), nextMatchClass "Firefox")
   , ((modm .|. shiftMask, xK_f             ), spawn "firefox")
 
   , ((modm ,              xK_c             ), nextMatchClass "Google-chrome")
@@ -172,7 +172,8 @@ myKeys hostname conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   , ((modm ,              xK_r             ), nextMatchClass "jetbrains-idea")
   , ((modm .|. shiftMask, xK_r             ), spawn "idea")
 
-  , ((modm ,              xK_v             ), nextMatchClassOrSpawn "vlc" "nlvlc")
+  , ((modm ,              xK_v             ), nextMatchClass "vlc")
+  , ((modm .|. shiftMask, xK_v             ), spawn "vlc")
 
   -- lock & suspend
   , ((modm ,              xK_Escape        ), spawn "lock-now")
@@ -349,6 +350,7 @@ myManageHook :: ManageHook
 myManageHook = manageDocks <+> composeAll
   [ isDialog --> doFloatDep computeDialogRect
   , className =? "Peek" --> doFloatDep computeDialogRect
+  , isFullscreen --> doFullFloat
   ]
 
 ------------------------------------------------------------------------

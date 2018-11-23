@@ -1,5 +1,7 @@
 import GHC.IO.Handle.Types (Handle)
 
+import Control.Monad (mapM)
+
 import qualified Data.List as List (concat, intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, Map)
 import qualified Data.Monoid as Monoid (All(..))
@@ -26,6 +28,7 @@ import XMonad.Hooks.SetWMName (setWMName)
 
 import XMonad.Layout.Grid (Grid(Grid))
 import XMonad.Layout.LayoutModifier (ModifiedLayout)
+import XMonad.Layout.IndependentScreens (countScreens)
 import XMonad.Layout.NoBorders (SmartBorder, WithBorder, noBorders, smartBorders)
 
 import XMonad.Prompt (deleteConsecutive, Direction1D(Next), XPPosition(..), XPConfig(..))
@@ -364,10 +367,15 @@ myEventHook = mempty <+> docksEventHook <+> fullscreenEventHook
 -- Log hook
 ------------------------------------------------------------------------
 
-myLogHook :: Handle -> X ()
-myLogHook xmobar =
+xmobarOutputs :: [Handle] -> String -> IO ()
+xmobarOutputs xmobarHandles input =
+    do _ <- traverse (\handle -> hPutStrLn handle input) xmobarHandles
+       return ()
+
+myLogHook :: [Handle] -> X ()
+myLogHook xmobarHandles =
   dynamicLogWithPP (def
-    { ppOutput = hPutStrLn xmobar
+    { ppOutput = xmobarOutputs xmobarHandles
     , ppTitle = xmobarColor myXmobarFgColor "" . shorten 110
     , ppCurrent = xmobarColor myXmobarColorRed myXmobarHiColor . pad
     , ppHidden = pad
@@ -509,8 +517,12 @@ xmobarTemplate home _ =
                  , "\'"
                  ]
 
-xmobarParameters :: XmonadHome -> Hostname -> String
-xmobarParameters xHome hostname = xmobarLook ++ xmobarTemplate xHome hostname
+xmobarParameters :: XmonadHome -> Hostname -> Int -> String
+xmobarParameters xHome hostname screen = 
+    List.concat [ xmobarLook
+                , xmobarTemplate xHome hostname
+                , " --screen=" ++ show screen
+                ]
 
 ------------------------------------------------------------------------
 -- Main
@@ -522,13 +534,17 @@ getHostname = lookupEnvEx "HOSTNAME"
 getHome :: IO Home
 getHome = lookupEnvEx "HOME"
 
+
 main :: IO ()
 main = do
   hostname <- getHostname
   let shortHostname = takeWhile (/= '.') hostname
   home <- getHome
   let xHome = xmonadHome home
-  xmobar <- spawnPipe ("xmobar" ++ xmobarParameters xHome shortHostname)
+
+  nScreens <- countScreens
+  xmobarHandles <- mapM (\screen -> spawnPipe $ "xmobar" ++ xmobarParameters xHome shortHostname screen) $ enumFromTo 0 (nScreens - 1)
+
   xmonad $ docks $ def
     { terminal           = myTerminal
     , focusFollowsMouse  = myFocusFollowsMouse
@@ -544,6 +560,6 @@ main = do
     , layoutHook         = myLayout
     , manageHook         = myManageHook
     , handleEventHook    = myEventHook
-    , logHook            = myLogHook xmobar
+    , logHook            = myLogHook xmobarHandles
     , startupHook        = myStartupHook xHome
     }

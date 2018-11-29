@@ -16,7 +16,7 @@ import System.ReadEnvVar (lookupEnvEx)
 import Text.Printf (printf)
 
 import XMonad
-import XMonad.Actions.CycleWS (doTo, moveTo, nextScreen, shiftNextScreen, WSType(EmptyWS))
+import XMonad.Actions.CycleWS (doTo, moveTo, nextScreen, shiftNextScreen, swapNextScreen, WSType(EmptyWS))
 import XMonad.Actions.GroupNavigation (historyHook, nextMatch, nextMatchOrDo, Direction(Backward, Forward, History))
 import XMonad.Actions.UpdatePointer (updatePointer)
 
@@ -34,7 +34,7 @@ import XMonad.Layout.NoBorders (SmartBorder, WithBorder, noBorders, smartBorders
 import XMonad.Prompt (deleteConsecutive, Direction1D(Next), XPPosition(..), XPConfig(..))
 import XMonad.Prompt.Shell (shellPrompt)
 import XMonad.StackSet (RationalRect(..))
-import qualified XMonad.StackSet as StackSet (focusDown, focusMaster, focusUp, greedyView, shift, shiftMaster, sink, swapDown, swapMaster, swapUp)
+import qualified XMonad.StackSet as StackSet (focusDown, focusUp, greedyView, shift, shiftMaster, sink, swapDown, swapMaster, swapUp)
 
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
@@ -233,14 +233,14 @@ myKeys hostname conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   -- move to next Screen
   , ((modm .|. shiftMask, xK_w             ), shiftNextScreen)
 
+  -- swap screens
+  , ((modm ,              xK_m             ), swapNextScreen)
+
   -- move focus to the next window
   , ((modm ,              xK_o             ), windows StackSet.focusDown)
 
   -- move focus to the previous window
   , ((modm ,              xK_p             ), windows StackSet.focusUp  )
-
-  -- move focus to the master window
-  , ((modm ,              xK_m             ), windows StackSet.focusMaster  )
 
   -- swap the focused window and the master window
   , ((modm ,              xK_Return        ), windows StackSet.swapMaster)

@@ -417,8 +417,8 @@ myXPConfig hostname =
       , borderColor       = myFocusedBorderColor
       , promptBorderWidth = 1
       , height            = case hostname of
-                                "notus" -> 24
-                                _       -> 16
+                                "eurus" -> 16
+                                _       -> 24
       , position          = Bottom
       , historySize       = 100
       , historyFilter     = deleteConsecutive
@@ -496,6 +496,22 @@ xmobarSep :: String
 xmobarSep = "<fc=" ++ myXmobarHiColor ++ ">|</fc>"
 
 xmobarTemplate :: Home -> Hostname -> String
+xmobarTemplate home "eos" =
+  xmobarCommands [ xmobarStdin
+                 , xmobarLoad "load" 100
+                 , xmobarMemory 100
+                 , xmobarNetwork "enp0s25" "wlp3s0" "network" 600
+                 , xmobarPipe (xmobarPipeAudio home) "audio"
+                 , xmobarDate 10
+                 ]
+  ++ List.concat [ " -t \'%StdinReader%}{ " , xmobarSep
+                 , " %load% ", xmobarSep
+                 , " %memory% ", xmobarSep
+                 , " %network% ", xmobarSep
+                 , " %audio% ", xmobarSep
+                 , " %date% "
+                 , "\'"
+                 ]
 xmobarTemplate home _ =
   xmobarCommands [ xmobarStdin
                  , xmobarLoad "load" 100

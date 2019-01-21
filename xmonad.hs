@@ -501,6 +501,7 @@ xmobarTemplate home "eos" =
                  , xmobarLoad "load" 100
                  , xmobarMemory 100
                  , xmobarNetwork "enp0s25" "wlp3s0" "network" 600
+                 , xmobarPipe (xmobarPipeBluetooth home) "bluetooth"
                  , xmobarPipe (xmobarPipeAudio home) "audio"
                  , xmobarDate 10
                  ]
@@ -508,6 +509,7 @@ xmobarTemplate home "eos" =
                  , " %load% ", xmobarSep
                  , " %memory% ", xmobarSep
                  , " %network% ", xmobarSep
+                 , " %bluetooth% ", xmobarSep
                  , " %audio% ", xmobarSep
                  , " %date% "
                  , "\'"

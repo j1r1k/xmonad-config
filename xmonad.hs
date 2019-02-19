@@ -500,7 +500,7 @@ xmobarTemplate home "eos" =
   xmobarCommands [ xmobarStdin
                  , xmobarLoad "load" 100
                  , xmobarMemory 100
-                 , xmobarNetwork "enp0s25" "wlp3s0" "network" 600
+                 , xmobarNetwork "enp2s0" "wlp6s0" "network" 600
                  , xmobarPipe (xmobarPipeBluetooth home) "bluetooth"
                  , xmobarPipe (xmobarPipeAudio home) "audio"
                  , xmobarDate 10

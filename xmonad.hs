@@ -166,8 +166,8 @@ myKeys hostname conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   , ((modm ,              xK_a             ), nextMatchClassOrSpawn "Pcmanfm" "pcmanfm")
   , ((modm .|. shiftMask, xK_a             ), spawn "pcmanfm")
 
-  , ((modm ,              xK_s             ), nextMatchTitleContainsOrSpawn "safe-common" "keepassx-safe-common")
-  , ((modm .|. shiftMask, xK_s             ), nextMatchTitleContainsOrSpawn "safe-secure" "keepassx-safe-secure")
+  , ((modm ,              xK_s             ), nextMatchTitleContainsOrSpawn "safe-common" "keepass-safe-common")
+  , ((modm .|. shiftMask, xK_s             ), nextMatchTitleContainsOrSpawn "safe-secure" "keepass-safe-secure")
 
   , ((modm ,              xK_e             ), nextMatchClass "Code")
   , ((modm .|. shiftMask, xK_e             ), spawn "code")

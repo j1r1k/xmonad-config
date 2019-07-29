@@ -2,6 +2,7 @@ import GHC.IO.Handle.Types (Handle)
 
 import Control.Monad (mapM)
 
+import Data.Foldable (traverse_)
 import qualified Data.List as List (concat, intercalate, isInfixOf)
 import qualified Data.Map as Map (fromList, Map)
 import qualified Data.Monoid as Monoid (All(..))
@@ -368,9 +369,7 @@ myEventHook = mempty <+> docksEventHook <+> fullscreenEventHook
 ------------------------------------------------------------------------
 
 xmobarOutputs :: [Handle] -> String -> IO ()
-xmobarOutputs xmobarHandles input =
-    do _ <- traverse (\handle -> hPutStrLn handle input) xmobarHandles
-       return ()
+xmobarOutputs xmobarHandles input = traverse_ (flip hPutStrLn input) xmobarHandles
 
 myLogHook :: [Handle] -> X ()
 myLogHook xmobarHandles =

@@ -8,6 +8,7 @@ import qualified Data.Map as Map (fromList, Map)
 import qualified Data.Monoid as Monoid (All(..))
 
 import Graphics.X11.ExtraTypes.XF86 (xF86XK_AudioLowerVolume, xF86XK_AudioMute, xF86XK_AudioRaiseVolume, xF86XK_Bluetooth, xF86XK_Display, xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp, xF86XK_LaunchA)
+import Graphics.X11.Xlib.Atom (wM_COMMAND, wM_CLASS)
 
 import System.Exit ()
 import System.FilePath.Posix ((</>))
@@ -35,9 +36,10 @@ import XMonad.Layout.NoBorders (SmartBorder, WithBorder, noBorders, smartBorders
 import XMonad.Prompt (deleteConsecutive, Direction1D(Next), XPPosition(..), XPConfig(..))
 import XMonad.Prompt.Shell (shellPrompt)
 import XMonad.StackSet (RationalRect(..))
-import qualified XMonad.StackSet as StackSet (focusDown, focusUp, greedyView, shift, shiftMaster, sink, swapDown, swapMaster, swapUp)
+import qualified XMonad.StackSet as StackSet (focusDown, focusUp, greedyView, shift, shiftMaster, sink, swapDown, swapMaster, swapUp, peek)
 
-import XMonad.Util.Run(spawnPipe)
+import XMonad.Util.Loggers (logCurrent, logLayout, logTitle)
+import XMonad.Util.Run (spawnPipe)
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
 type Hostname = String
@@ -371,6 +373,29 @@ myEventHook = mempty <+> docksEventHook <+> fullscreenEventHook
 xmobarOutputs :: [Handle] -> String -> IO ()
 xmobarOutputs xmobarHandles input = traverse_ (flip hPutStrLn input) xmobarHandles
 
+eventLogger :: X ()
+eventLogger = do
+    current' <- logCurrent
+    layout' <- logLayout
+    title' <- logTitle
+    windowset' <- gets windowset
+    let currentWindow = StackSet.peek windowset'
+
+    command' <- withDisplay $ \d -> do
+        io $ traverse (\w -> getTextProperty d w wM_COMMAND >>= wcTextPropertyToTextList d) currentWindow
+
+    class' <- withDisplay $ \d -> do
+        io $ traverse (\w -> getTextProperty d w wM_CLASS >>= wcTextPropertyToTextList d) currentWindow
+
+    io $ putStrLn $ "current: " ++ show current'
+    io $ putStrLn $ "layout: " ++ show  layout'
+    io $ putStrLn $ "title: " ++ show title'
+    io $ putStrLn $ "command: " ++ show command'
+    io $ putStrLn $ "class: " ++ show class'
+
+    return ()
+
+
 myLogHook :: [Handle] -> X ()
 myLogHook xmobarHandles =
   dynamicLogWithPP (def
@@ -388,6 +413,7 @@ myLogHook xmobarHandles =
     })
     >> historyHook
     >> updatePointer (0.5, 0.5) (0, 0)
+    >> eventLogger
 
 ------------------------------------------------------------------------
 -- Startup hook

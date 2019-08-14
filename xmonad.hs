@@ -191,8 +191,8 @@ myKeys hostname conf@XConfig {XMonad.modMask = modm} = Map.fromList $
   , ((0 ,  xF86XK_AudioMute                ), spawn "pa-volume-mute")
 
   -- mic volume control
-  , ((modm , xF86XK_AudioRaiseVolume       ), spawn "pa-mic-up")
-  , ((modm , xF86XK_AudioLowerVolume       ), spawn "pa-mic-down")
+  , ((modm , xF86XK_AudioRaiseVolume       ), spawn "pa-mic-up 5")
+  , ((modm , xF86XK_AudioLowerVolume       ), spawn "pa-mic-down 5")
   , ((0 ,  xF86XK_AudioMicMute             ), spawn "pa-mic-mute")
 
   , ((0 ,  xF86XK_Display                  ), spawn "cycle")

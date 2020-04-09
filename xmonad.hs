@@ -17,12 +17,13 @@ import XMonad.Actions.UpdatePointer (updatePointer)
 import XMonad.Hooks.DynamicLog (dynamicLogWithPP, pad, ppCurrent, ppHidden, ppLayout, ppOutput, ppSep, ppTitle, ppWsSep, shorten, xmobarColor)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup, fullscreenEventHook)
 import XMonad.Hooks.ManageDocks (AvoidStruts, ToggleStruts (ToggleStruts), avoidStruts, docks, docksEventHook, manageDocks)
-import XMonad.Hooks.ManageHelpers (doFloatDep, doFullFloat, isDialog, isFullscreen)
+import XMonad.Hooks.ManageHelpers (doFloatDep, doFullFloat, isDialog, isFullscreen, isInProperty)
 import XMonad.Hooks.SetWMName (setWMName)
 import XMonad.Layout.Grid (Grid (Grid))
 import XMonad.Layout.IndependentScreens (countScreens)
 import XMonad.Layout.LayoutModifier (ModifiedLayout)
 import XMonad.Layout.NoBorders (SmartBorder, WithBorder, noBorders, smartBorders)
+import XMonad.ManageHook (doFloat)
 import XMonad.Prompt (Direction1D (Next), XPConfig (..), XPPosition (..), deleteConsecutive)
 import XMonad.Prompt.Shell (shellPrompt)
 import XMonad.StackSet (RationalRect (..))
@@ -319,7 +320,8 @@ myManageHook =
     <+> composeAll
       [ isDialog --> doFloatDep computeDialogRect,
         className =? "Peek" --> doFloatDep computeDialogRect,
-        isFullscreen --> doFullFloat
+        isFullscreen --> doFullFloat,
+        isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_CALLS-MINI-PANEL" --> doFloat -- slack call mini panel
       ]
 
 ------------------------------------------------------------------------

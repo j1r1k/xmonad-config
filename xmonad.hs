@@ -23,7 +23,7 @@ import XMonad.Layout.Grid (Grid (Grid))
 import XMonad.Layout.IndependentScreens (countScreens)
 import XMonad.Layout.LayoutModifier (ModifiedLayout)
 import XMonad.Layout.NoBorders (SmartBorder, WithBorder, noBorders, smartBorders)
-import XMonad.ManageHook (doFloat)
+import XMonad.ManageHook (doIgnore)
 import XMonad.Prompt (Direction1D (Next), XPConfig (..), XPPosition (..), deleteConsecutive)
 import XMonad.Prompt.Shell (shellPrompt)
 import XMonad.StackSet (RationalRect (..))
@@ -321,7 +321,7 @@ myManageHook =
       [ isDialog --> doFloatDep computeDialogRect,
         className =? "Peek" --> doFloatDep computeDialogRect,
         isFullscreen --> doFullFloat,
-        isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_CALLS-MINI-PANEL" --> doFloat -- slack call mini panel
+        isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_CALLS-MINI-PANEL" --> doIgnore -- slack call mini panel
       ]
 
 ------------------------------------------------------------------------

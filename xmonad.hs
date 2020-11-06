@@ -95,18 +95,9 @@ myWorkspaces = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "A", "B"]
 xmonadHome :: Home -> XmonadHome
 xmonadHome home = home </> ".xmonad"
 
-xmobarPipeAudio :: XmonadHome -> FilePath
-xmobarPipeAudio xHome = xHome </> "xmobar-pipe-audio"
-
-xmobarPipeBluetooth :: XmonadHome -> FilePath
-xmobarPipeBluetooth xHome = xHome </> "xmobar-pipe-bluetooth"
-
 -----------------------------------------------------------------------
 -- Helpers
 -----------------------------------------------------------------------
-
-createPipe :: (MonadIO m) => FilePath -> m ()
-createPipe path = spawn $ printf "test -p \"%s\" || mkfifo \"%s\"" path path
 
 constantToFile :: (MonadIO m, Show a) => a -> FilePath -> m ()
 constantToFile a file = spawn $ printf "echo \"%s\" > \"%s\"" (show a) file
@@ -369,8 +360,6 @@ myStartupHook xHome =
     >> setWMName "LG3D"
     >> constantToFile myXmobarColorGrn (xHome </> "xmobar-color-grn")
     >> constantToFile myXmobarColorRed (xHome </> "xmobar-color-red")
-    >> createPipe (xmobarPipeAudio xHome)
-    >> createPipe (xmobarPipeBluetooth xHome)
 
 ------------------------------------------------------------------------
 -- Prompt config
@@ -398,10 +387,6 @@ myXPConfig hostname =
 -- Xmobar configuration
 ------------------------------------------------------------------------
 
-xmobarComParameters :: [String] -> String
-xmobarComParameters [] = " [] "
-xmobarComParameters c = " [\"" ++ List.intercalate "\",\"" c ++ "\"] "
-
 xmobarLook :: String
 xmobarLook =
   concat
@@ -420,133 +405,20 @@ xmobarStdin :: String
 xmobarStdin =
   "Run StdinReader"
 
-xmobarCommand :: String -> [String] -> String -> Integer -> String
-xmobarCommand c p = printf "Run Com \"%s\" %s \"%s\" %d" c (xmobarComParameters p)
-
-xmobarLoad :: String -> Integer -> String
-xmobarLoad = xmobarCommand "xmobar-load-status" [myXmobarColorRed, myXmobarColorGrn]
-
-xmobarNetwork :: String -> String -> String -> Integer -> String
-xmobarNetwork lan wlan = xmobarCommand "xmobar-net-status" [myXmobarColorRed, myXmobarColorGrn, lan, wlan]
-
-xmobarBattery :: Integer -> String
-xmobarBattery rr =
-  concat
-    [ "Run BatteryP",
-      xmobarComParameters ["BAT0", "BAT1"],
-      xmobarComParameters
-        [ "--template",
-          "<acstatus> : <left>% : <timeleft>h",
-          "--Low",
-          "10",
-          "--High",
-          "80",
-          "--low",
-          myXmobarColorRed,
-          "--normal",
-          myXmobarFgColor,
-          "--high",
-          myXmobarColorGrn,
-          "--",
-          "-o",
-          "<fc=" ++ myXmobarColorRed ++ ">D</fc>",
-          "-O",
-          "<fc=" ++ myXmobarColorGrn ++ ">C</fc>",
-          "-i",
-          "<fc=" ++ myXmobarFgColor ++ ">F</fc>"
-        ],
-      show rr
-    ]
-
-xmobarMemory :: Integer -> String
-xmobarMemory rr =
-  concat
-    [ "Run Memory",
-      xmobarComParameters
-        [ "--template",
-          "M : <usedratio>%",
-          "--Low",
-          "20",
-          "--High",
-          "90",
-          "--low",
-          myXmobarColorGrn,
-          "--normal",
-          myXmobarFgColor,
-          "--high",
-          myXmobarColorRed
-        ],
-      show rr
-    ]
-
 xmobarDate :: Integer -> String
 xmobarDate rr = "Run Date \"%H:%M:%S\" \"date\" " ++ show rr
 
 xmobarCommands :: [String] -> String
 xmobarCommands c = " --commands=\'[" ++ List.intercalate ", " c ++ "]\'"
 
-xmobarPipe :: String -> String -> String
-xmobarPipe f a = "Run PipeReader \"" ++ f ++ "\" \"" ++ a ++ "\""
 
 xmobarSep :: String
 xmobarSep = "<fc=" ++ myXmobarHiColor ++ ">|</fc>"
 
 xmobarTemplate :: Home -> Hostname -> String
-xmobarTemplate home "eos" =
-  xmobarCommands
-    [ xmobarStdin,
-      xmobarLoad "load" 100,
-      xmobarMemory 100,
-      xmobarNetwork "enp2s0" "wlp6s0" "network" 600,
-      xmobarPipe (xmobarPipeBluetooth home) "bluetooth",
-      xmobarPipe (xmobarPipeAudio home) "audio",
-      xmobarDate 10
-    ]
-    ++ List.concat
-      [ " -t \'%StdinReader%}{ ",
-        xmobarSep,
-        " %load% ",
-        xmobarSep,
-        " %memory% ",
-        xmobarSep,
-        " %network% ",
-        xmobarSep,
-        " %bluetooth% ",
-        xmobarSep,
-        " %audio% ",
-        xmobarSep,
-        " %date% ",
-        "\'"
-      ]
-xmobarTemplate home _ =
-  xmobarCommands
-    [ xmobarStdin,
-      xmobarLoad "load" 100,
-      xmobarMemory 100,
-      xmobarNetwork "enp0s25" "wlp3s0" "network" 600,
-      xmobarPipe (xmobarPipeBluetooth home) "bluetooth",
-      xmobarPipe (xmobarPipeAudio home) "audio",
-      xmobarBattery 600,
-      xmobarDate 10
-    ]
-    ++ List.concat
-      [ " -t \'%StdinReader%}{ ",
-        xmobarSep,
-        " %load% ",
-        xmobarSep,
-        " %memory% ",
-        xmobarSep,
-        " %network% ",
-        xmobarSep,
-        " %bluetooth% ",
-        xmobarSep,
-        " %audio% ",
-        xmobarSep,
-        " %battery% ",
-        xmobarSep,
-        " %date% ",
-        "\'"
-      ]
+xmobarTemplate _ _ =
+    xmobarCommands [xmobarStdin, xmobarDate 10] 
+        ++ List.concat [ " -t \'%StdinReader%}{ ", xmobarSep, " %date% ", "\'" ]
 
 xmobarParameters :: XmonadHome -> Hostname -> Int -> String
 xmobarParameters xHome hostname screen =
